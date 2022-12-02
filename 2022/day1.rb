@@ -12,5 +12,6 @@ for line in input do
         elf = 0
     end
 end
-p elves.max
-p elves.sort.slice(-3, 3).sum
+top3 = elves.max(3)
+p top3.max
+p top3.sum
