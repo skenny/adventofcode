@@ -6,8 +6,8 @@ def choice_points(you)
     @opts.index(you) + 1
 end
 
-def victory_points(you, opponent, winner)
-    you == opponent ? 3 : you == winner ? 6 : 0
+def victory_points(you, opponent)
+    you == opponent ? 3 : you == winner(opponent) ? 6 : 0
 end
 
 def winner(p)
@@ -23,10 +23,8 @@ total = 0
 input.each do |line|
     parts = line.split(" ")
     opponent = parts[0]
-    you = @opts[parts[1].ord - 88]
-    winner = winner(opponent)
-    #p parts.join("-") + " opponent=" + opponent + " you=" + you + " winner=" + winner
-    total += choice_points(you) + victory_points(you, opponent, winner)
+    you = @opts[parts[1].ord - 88]  # normalize X->A, etc
+    total += choice_points(you) + victory_points(you, opponent)
 end
 p total
 
@@ -36,8 +34,6 @@ input.each do |line|
     parts = line.split(" ")
     opponent = parts[0]
     you = parts[1] == 'X' ? loser(opponent) : parts[1] == 'Z' ? winner(opponent) : opponent
-    winner = winner(opponent)
-    #p parts.join("-") + " opponent=" + opponent + " you=" + you + " winner=" + winner
-    total += choice_points(you) + victory_points(you, opponent, winner)
+    total += choice_points(you) + victory_points(you, opponent)
 end
 p total
