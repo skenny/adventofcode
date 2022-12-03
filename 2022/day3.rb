@@ -10,4 +10,12 @@ def part1(rucksacks)
     end
 end
 
+def part2(rucksacks)
+    rucksacks.each_slice(3).reduce(0) do |sum, elf_group|
+        badge = elf_group[0].chars.intersection(elf_group[1].chars, elf_group[2].chars)[0]
+        sum += @alpha.index(badge) + 1
+    end
+end
+
 p part1(input)
+p part2(input)
