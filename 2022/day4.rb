@@ -1,19 +1,11 @@
 input = File.read("2022/day4input.txt").split("\n")
 
-def fully_overlap?(range_a, range_b)
-    range_a.cover?(range_b) or range_b.cover?(range_a)
-end
-
-def partially_overlap?(range_a, range_b)
-    !range_a.to_a.intersection(range_b.to_a).empty?
-end
-
 def part1(assignment_pairs)
-    assignment_pairs.count { |a, b| fully_overlap?(a, b) }
+    assignment_pairs.count { |a, b| a.cover?(b) or b.cover?(a) }
 end
 
 def part2(assignment_pairs)
-    assignment_pairs.count { |a, b| partially_overlap?(a, b) }
+    assignment_pairs.count { |a, b| !a.to_a.intersection(b.to_a).empty? }
 end
 
 # "1-2,3-4" -> [1..2, 3..4]
