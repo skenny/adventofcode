@@ -20,14 +20,14 @@ end
 def part1(assignment_pairs)
     assignment_pairs.reduce(0) do |sum, pair|
         sections1, sections2 = split_ranges(pair)
-        fully_overlap?(sections1, sections2) ? sum + 1 : sum
+        sum + (fully_overlap?(sections1, sections2) ? 1 : 0)
     end
 end
 
 def part2(assignment_pairs)
     assignment_pairs.reduce(0) do |sum, pair|
         sections1, sections2 = split_ranges(pair)
-        partially_overlap?(sections1, sections2) ? sum + 1 : sum
+        sum + (partially_overlap?(sections1, sections2) ? 1 : 0)
     end
 end
 
