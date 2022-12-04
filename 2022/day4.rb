@@ -8,7 +8,7 @@ def part2(assignment_pairs)
     assignment_pairs.count { |a, b| !a.to_a.intersection(b.to_a).empty? }
 end
 
-# "1-2,3-4" -> [1..2, 3..4]
+# "1-2,3-4" -> [[1,2], [3,4]] -> [1..2, 3..4]
 assignment_pairs = input.map { |pair| pair.split(",").map { |range_s| range_s.split("-").map(&:to_i) }.map { |b, e| b..e } }
 
 p part1(assignment_pairs)
