@@ -8,28 +8,16 @@ def partially_overlap?(range_a, range_b)
     !range_a.to_a.intersection(range_b.to_a).empty?
 end
 
-def split_ranges(pair_s)
-    pair_s.split(",").map { |range_s| to_range(range_s) }
-end
-
-def to_range(range_s)
-    b, e = range_s.split("-").map(&:to_i)
-    b..e
-end
-
 def part1(assignment_pairs)
-    assignment_pairs.reduce(0) do |sum, pair|
-        sections1, sections2 = split_ranges(pair)
-        sum + (fully_overlap?(sections1, sections2) ? 1 : 0)
-    end
+    assignment_pairs.count { |a, b| fully_overlap?(a, b) }
 end
 
 def part2(assignment_pairs)
-    assignment_pairs.reduce(0) do |sum, pair|
-        sections1, sections2 = split_ranges(pair)
-        sum + (partially_overlap?(sections1, sections2) ? 1 : 0)
-    end
+    assignment_pairs.count { |a, b| partially_overlap?(a, b) }
 end
 
-p part1(input)
-p part2(input)
+# "1-2,3-4" -> [1..2, 3..4]
+assignment_pairs = input.map { |pair| pair.split(",").map { |range_s| range_s.split("-").map(&:to_i) }.map { |b, e| b..e } }
+
+p part1(assignment_pairs)
+p part2(assignment_pairs)
