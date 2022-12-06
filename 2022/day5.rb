@@ -3,7 +3,7 @@ input = File.read("2022/day5input.txt").split("\n")
 def part1(input)
     stacks, steps = parse_input(input)
     steps.each do |num_crates, from, to|
-        num_crates.times do |i|
+        num_crates.times do
             stacks[to - 1].push(stacks[from - 1].pop)
         end
     end
@@ -27,7 +27,7 @@ def parse_input(input)
     stacks_lines.reverse!
 
     stacks = []
-    (0...num_stacks).each do |col|
+    num_stacks.times do |col|
         crate_idx = 1 + (col * 4)
         stacks_lines.each do |line|
             crate_val = line[crate_idx].strip
