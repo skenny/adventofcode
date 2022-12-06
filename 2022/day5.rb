@@ -1,6 +1,7 @@
 input = File.read("2022/day5input.txt").split("\n")
 
-def part1(stacks, steps)
+def part1(input)
+    stacks, steps = parse_input(input)
     steps.each do |num_crates, from, to|
         (0...num_crates).each do |i|
             stacks[to - 1].push(stacks[from - 1].pop)
@@ -10,6 +11,11 @@ def part1(stacks, steps)
 end
 
 def part2(input)
+    stacks, steps = parse_input(input)
+    steps.each do |num_crates, from, to|
+        stacks[to - 1] += stacks[from - 1].pop(num_crates)
+    end
+    stacks.map { |stack| stack.last }.join
 end
 
 def parse_input(input)
@@ -41,9 +47,5 @@ def parse_input(input)
     [stacks, steps]
 end
 
-stacks, steps = parse_input(input)
-#p stacks
-#p steps
-
-puts part1(stacks, steps)
+puts part1(input)
 puts part2(input)
