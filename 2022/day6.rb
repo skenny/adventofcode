@@ -8,13 +8,5 @@ def scan_input(input, chunk_size)
     i
 end
 
-def part1(input)
-    scan_input(input, 4)
-end
-
-def part2(input)
-    scan_input(input, 14)
-end
-
-puts part1(input)
-puts part2(input)
+puts scan_input(input, 4)
+puts scan_input(input, 14)
