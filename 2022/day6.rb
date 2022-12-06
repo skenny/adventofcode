@@ -1,19 +1,19 @@
 input = File.read("2022/day6input.txt")
 
-def part1(input)
-    i = 4
-    until input[i-4, 4].chars.uniq.length == 4 do
+def scan_input(input, chunk_size)
+    i = chunk_size
+    until input[i-chunk_size, chunk_size].chars.uniq.length == chunk_size do
         i += 1
     end
     i
 end
 
+def part1(input)
+    scan_input(input, 4)
+end
+
 def part2(input)
-    i = 14
-    until input[i-14, 14].chars.uniq.length == 14 do
-        i += 1
-    end
-    i
+    scan_input(input, 14)
 end
 
 puts part1(input)
