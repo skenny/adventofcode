@@ -9,7 +9,11 @@ def part1(input)
 end
 
 def part2(input)
-    0
+    i = 14
+    until input[i-14, 14].chars.uniq.length == 14 do
+        i += 1
+    end
+    i
 end
 
 puts part1(input)
