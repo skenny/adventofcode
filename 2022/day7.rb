@@ -1,7 +1,9 @@
 input = File.read("2022/day7input.txt").split("\n")
 #input = File.read("2022/day7testinput.txt").split("\n")
 
-class AocDirectory   
+class AocDirectory
+    attr_accessor :name
+
     def initialize(name)
         @name = name
         @child_dirs = []
@@ -19,24 +21,15 @@ class AocDirectory
     def size
         @files.map(&:size).sum + @child_dirs.map(&:size).sum
     end
-
-    def to_s
-        @name
-    end
 end
 
 class AocFile
+    attr_accessor :name
+    attr_accessor :size
+
     def initialize(name, size)
         @name = name
         @size = size
-    end
-
-    def size
-        @size
-    end
-
-    def to_s
-        @name + " - " + @size.to_s + " bytes"
     end
 end
 
@@ -60,9 +53,7 @@ def parse_input(input)
                 path.pop
             else
                 new_dir = AocDirectory.new(dir_name)
-                if path.last
-                    path.last.add_child_dir(new_dir)
-                end
+                path.last.add_child_dir(new_dir) unless path.empty?
                 path.push(new_dir)
                 dirs.push(new_dir)
             end
