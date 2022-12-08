@@ -11,7 +11,7 @@ def part1(grid)
             tree_height = grid[y][x]
 
             # check edges
-            if y == 0 || y == rows-1 || x == 0 || x == cols-1
+            if y == 0 or y == rows-1 or x == 0 or x == cols-1
                 visible_trees += 1
                 next
             end
