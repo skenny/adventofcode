@@ -21,7 +21,7 @@ def part1(grid)
             visible_up = (0...y).all?         { |u_y| grid[u_y][x] < tree_height }
             visible_down = (y+1...rows).all?  { |d_y| grid[d_y][x] < tree_height }
 
-            visible_trees += 1 if visible_left || visible_right || visible_up || visible_down
+            visible_trees += 1 if visible_left or visible_right or visible_up or visible_down
         end
     end
 
