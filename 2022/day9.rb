@@ -34,9 +34,7 @@ def catch_up(head, tail)
     delta_x = head[0] - tail[0]
     delta_y = head[1] - tail[1]
 
-    catch_up_tail = delta_x.abs > 1 || delta_y.abs > 1
-
-    if catch_up_tail
+    if delta_x.abs > 1 || delta_y.abs > 1
         if (delta_x != 0)
             tail = move(tail, @directions[delta_x > 0 ? "R" : "L"])
         end
