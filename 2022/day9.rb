@@ -2,45 +2,43 @@
 input = File.read("2022/day9input.txt").split("\n")
 
 def part1(motions)
-    head_x, head_y, tail_x, tail_y = [0, 0, 0, 0]
+    head = [0,0]
+    tail = [0,0]
     tail_visits = { [0,0] => true }
 
     motions.each do |motion|
         direction, amount = motion.split(" ")
         amount.to_i.times do |v|
-            puts "moving head in " + direction
-            head_x, head_y = move(head_x, head_y, direction)
-            puts "\thead is now at #{head_x},#{head_y}"
-            
-            catch_up_tail = (head_x-tail_x).abs > 1 || (head_y-tail_y).abs > 1
-
-            if catch_up_tail
-                puts "catching up tail..."
-                delta_x = head_x - tail_x
-                if (delta_x != 0)
-                    tail_direction = delta_x > 0 ? "R" : "L"
-                    puts "\tmoving tail in " + tail_direction
-                    tail_x, tail_y = move(tail_x, tail_y, tail_direction)
-                    puts "\t\ttail is now at #{tail_x},#{tail_y}"
-                end
-
-                delta_y = head_y - tail_y
-                if (delta_y != 0)
-                    tail_direction = delta_y > 0 ? "U" : "D"
-                    puts "\tmoving tail in " + tail_direction
-                    tail_x, tail_y = move(tail_x, tail_y, tail_direction)
-                    puts "\t\ttail is now at #{tail_x},#{tail_y}"
-                end
-
-                tail_visits[[tail_x, tail_y]] = true
-            end
+            head = move(head, direction)
+            tail = catch_up(head, tail)
+            tail_visits[tail] = true
         end
     end
 
     tail_visits.keys.count
 end
 
-def move(x, y, direction)
+def part2(motions)
+    knots = Array.new(10) { |i| [0,0] }
+    tail_visits = { [0,0] => true }
+
+    motions.each do |motion|
+        direction, amount = motion.split(" ")
+        amount.to_i.times do |v|
+            knots[0] = move(knots[0], direction)
+            (1..9).each do |knot_i|
+                knots[knot_i] = catch_up(knots[knot_i - 1], knots[knot_i])
+            end
+            tail_visits[knots[9]] = true
+        end
+    end
+
+    tail_visits.keys.count
+end
+
+def move(knot, direction)
+    x, y = knot
+
     case direction
     when 'U'
         [x, y+1]
@@ -56,4 +54,28 @@ def move(x, y, direction)
     end
 end
 
+def catch_up(head, tail)
+    head_x, head_y = head
+    tail_x, tail_y = tail
+
+    catch_up_tail = (head_x-tail_x).abs > 1 || (head_y-tail_y).abs > 1
+
+    if catch_up_tail
+        delta_x = head_x - tail_x
+        if (delta_x != 0)
+            tail_direction = delta_x > 0 ? "R" : "L"
+            tail_x, tail_y = move([tail_x, tail_y], tail_direction)
+        end
+
+        delta_y = head_y - tail_y
+        if (delta_y != 0)
+            tail_direction = delta_y > 0 ? "U" : "D"
+            tail_x, tail_y = move([tail_x, tail_y], tail_direction)
+        end
+    end
+
+    [tail_x, tail_y]
+end
+
 puts part1(input)
+puts part2(input)
