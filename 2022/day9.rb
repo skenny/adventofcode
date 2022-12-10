@@ -8,7 +8,7 @@ def part1(motions)
 
     motions.each do |motion|
         direction, amount = motion.split(" ")
-        amount.to_i.times do |v|
+        amount.to_i.times do
             head = move(head, direction)
             tail = catch_up(head, tail)
             tail_visits[tail] = true
@@ -24,7 +24,7 @@ def part2(motions)
 
     motions.each do |motion|
         direction, amount = motion.split(" ")
-        amount.to_i.times do |v|
+        amount.to_i.times do
             knots[0] = move(knots[0], direction)
             (1..9).each do |knot_i|
                 knots[knot_i] = catch_up(knots[knot_i - 1], knots[knot_i])
