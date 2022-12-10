@@ -1,5 +1,5 @@
 #input = "R 4\nU 4\nL 3\nD 1\nR 4\nD 1\nL 5\nR 2".split("\n")
-input = File.read("2022/day9input.txt").split("\n")
+input = ARGF.readlines
 
 @directions = {
     "U" => [0, 1],
@@ -10,7 +10,7 @@ input = File.read("2022/day9input.txt").split("\n")
 
 def play_rope(motions, num_knots)
     knots = Array.new(num_knots) { [0, 0] }
-    tail_visits = { knots[0] => true }
+    tail_visits = []
 
     motions.each do |motion|
         direction, steps = motion.split(" ")
@@ -19,11 +19,11 @@ def play_rope(motions, num_knots)
             (1...num_knots).each do |i|
                 knots[i] = catch_up(knots[i - 1], knots[i])
             end
-            tail_visits[knots.last] = true
+            tail_visits.push(knots.last)
         end
     end
 
-    tail_visits.keys.count
+    tail_visits.uniq.count
 end
 
 def move(knot, vector)
