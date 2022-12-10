@@ -9,7 +9,7 @@ input = ARGF.readlines
 }
 
 def play_rope(motions, num_knots)
-    knots = Array.new(num_knots) { [0, 0] }
+    knots = [[0, 0]] * num_knots
     tail_visits = []
 
     motions.each do |motion|
