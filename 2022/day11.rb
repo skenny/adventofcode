@@ -3,6 +3,7 @@ input = ARGF.read.split("\n\n")
 class Monkey
     attr_accessor :items
     attr_accessor :items_inspected
+    attr_accessor :test_divisor
 
     @@operations = {
         "+" => :+,
@@ -18,7 +19,7 @@ class Monkey
         @items_inspected = 0
     end
 
-    def inspect_items(monkeys, adjust_worry)
+    def inspect_items(monkeys, adjust_worry, monkey_test_product)
         @items.each do |item|
             #puts "\tMonkey inspects an item with a worry level of #{item}."
             
@@ -31,6 +32,8 @@ class Monkey
             if adjust_worry
                 new_item /= 3
                 #puts "\t\tMonkey gets bored with item. Worry level is divided by 3 to #{new_item}."
+            else
+                new_item %= monkey_test_product
             end
             
             test_result = new_item % @test_divisor == 0
@@ -67,17 +70,18 @@ def parse_input(input)
     end
 end
 
-def play_round(monkeys, adjust_worry)
+def play_round(monkeys, adjust_worry, monkey_test_product)
     monkeys.each_with_index do |monkey, i|
-        monkey.inspect_items(monkeys, adjust_worry)
+        monkey.inspect_items(monkeys, adjust_worry, monkey_test_product)
     end
 end
 
-def play(input, rounds, debug)
+def play(input, rounds, adjust_worry, debug)
     monkeys = parse_input(input)
+    monkey_test_product = monkeys.map(&:test_divisor).inject(:*)
 
     rounds.times do |round|
-        play_round(monkeys, true)
+        play_round(monkeys, adjust_worry, monkey_test_product)
 
         if debug
             puts "== After round #{round + 1} =="
@@ -89,8 +93,15 @@ def play(input, rounds, debug)
         end
     end
 
+    puts "== After round #{rounds} =="
+    monkeys.each_with_index do |monkey, i|
+        #puts "Monkey #{i}: #{monkey.items.join(', ')}"
+        puts "Monkey #{i} inspected items #{monkey.items_inspected} times."
+    end
+    puts "\n"
+
     monkeys.map(&:items_inspected).max(2).inject(:*)
 end
 
-puts play(input, 20, false)
-#puts part2(input, 10000, true)
+puts play(input, 20, true, false)
+puts play(input, 10000, false, false)
