@@ -19,7 +19,7 @@ class Monkey
         @items_inspected = 0
     end
 
-    def inspect_items(monkeys)
+    def inspect_items(monkeys, worry_adjustor)
         @items.each do |item|
             #puts "\tMonkey inspects an item with a worry level of #{item}."
             
@@ -29,8 +29,10 @@ class Monkey
             new_item = amount.send(operation, item)
             #puts "\t\tWorry level is #{operation_s} by #{amount_s} to #{new_item}."
             
-            new_item /= 3
-            #puts "\t\tMonkey gets bored with item. Worry level is divided by 3 to #{new_item}."
+            worry_adjustor_operation_s, worry_adjustor_amount = worry_adjustor
+            worry_adjustor_operation = @@operations[worry_adjustor_operation_s]
+            new_item = new_item.send(worry_adjustor_operation, worry_adjustor_amount)
+            #puts "\t\tMonkey gets bored with item. Worry level is #{worry_adjustor_operation_s} by #{worry_adjustor_amount} to #{new_item}."
             
             divisor = @test[0].to_i
             test_result = new_item % divisor == 0
@@ -68,9 +70,9 @@ def parse_input(input)
     end
 end
 
-def play_round(monkeys)
+def play_round(monkeys, worry_adjustor)
     monkeys.each do |monkey|
-        monkey.inspect_items(monkeys)
+        monkey.inspect_items(monkeys, worry_adjustor)
     end
 end
 
@@ -78,7 +80,7 @@ def part1(input)
     monkeys = parse_input(input)
 
     20.times do |round|
-        play_round(monkeys)
+        play_round(monkeys, ["/", 3])
 
         # puts "After round #{round + 1}, the monkeys are holding items with these worry levels:"
         # monkeys.each_with_index do |monkey, i|
@@ -92,12 +94,14 @@ end
 def part2(input)
     monkeys = parse_input(input)
     
-    20.times do |round|
-        play_round(monkeys)
+    10000.times do |round|
+        play_round(monkeys, ["/", 3])
 
-        puts "== After round #{round + 1} =="
-        monkeys.each_with_index do |monkey, i|
-            puts "Monkey #{i} inspected items #{monkey.items_inspected} times."
+        if (round + 1) % 1000 == 0
+            puts "== After round #{round + 1} =="
+            monkeys.each_with_index do |monkey, i|
+                puts "Monkey #{i} inspected items #{monkey.items_inspected} times."
+            end
         end
     end
 
@@ -105,4 +109,4 @@ def part2(input)
 end
 
 part1(input)
-part2(input)
+#part2(input)
