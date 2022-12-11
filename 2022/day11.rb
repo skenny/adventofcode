@@ -1,19 +1,50 @@
 input = ARGF.read.split("\n\n")
 
-@operations = {
-    "+" => :+,
-    "*" => :*
-}
-
 class Monkey
     attr_accessor :items
     attr_accessor :operation
     attr_accessor :test
+    attr_accessor :items_inspected
     
+    @@operations = {
+        "+" => :+,
+        "*" => :*
+    }
+
     def initialize(items, operation, test)
         @items = items
         @operation = operation
         @test = test
+        @items_inspected = 0
+    end
+
+    def inspect_items(monkeys)
+        @items.each do |item|
+            puts "\tMonkey inspects an item with a worry level of #{item}."
+            
+            operation_s, amount_s = @operation
+            operation = @@operations[operation_s]
+            amount = amount_s == "old" ? item : amount_s.to_i
+            new_item = amount.send(operation, item)
+            puts "\t\tWorry level is #{operation_s} by #{amount_s} to #{new_item}."
+            
+            new_item /= 3
+            puts "\t\tMonkey gets bored with item. Worry level is divided by 3 to #{new_item}."
+            
+            divisor = @test[0].to_i
+            test_result = new_item % divisor == 0
+            puts "\t\tCurrent worry level #{test_result ? 'is' : 'is not'} divisible by #{divisor}."
+
+            new_monkey = @test[test_result ? 1 : 2].to_i
+            puts "\t\tItem with worry level #{new_item} is thrown to monkey #{new_monkey}."
+            
+            monkeys[new_monkey].items.push(new_item)
+        end
+
+        @items_inspected += @items.length
+
+        # monkey threw all the items away
+        @items = []
     end
 end
 
@@ -41,30 +72,7 @@ monkeys = parse_input(input)
 def play_round(monkeys)
     monkeys.each_with_index do |monkey, i|
         puts "Monkey #{i}:"
-        monkey.items.each do |item|
-            puts "\tMonkey inspects an item with a worry level of #{item}."
-            
-            operation_s, amount_s = monkey.operation
-            operation = @operations[operation_s]
-            amount = amount_s == "old" ? item : amount_s.to_i
-            new_item = amount.send(operation, item)
-            puts "\t\tWorry level is #{operation_s} by #{amount_s} to #{new_item}."
-            
-            new_item /= 3
-            puts "\t\tMonkey gets bored with item. Worry level is divided by 3 to #{new_item}."
-            
-            divisor = monkey.test[0].to_i
-            test_result = new_item % divisor == 0
-            puts "\t\tCurrent worry level #{test_result ? 'is' : 'is not'} divisible by #{divisor}."
-
-            new_monkey = monkey.test[test_result ? 1 : 2].to_i
-            puts "\t\tItem with worry level #{new_item} is thrown to monkey #{new_monkey}."
-            
-            monkeys[new_monkey].items.push(new_item)
-        end
-
-        # the monkey threw all the items to other monkeys
-        monkey.items = []
+        monkey.inspect_items(monkeys)
     end
 end
 
@@ -75,4 +83,6 @@ end
     monkeys.each_with_index do |monkey, i|
         puts "Monkey #{i}: #{monkey.items.join(', ')}"
     end
+
+    puts monkeys.map(&:items_inspected).max(2).inject(:*)
 end
