@@ -16,21 +16,17 @@ def part1(grid)
 
     end_elevation = elevation(grid, end_v)
     neighbours = find_previous_neighbours(grid, end_v)
-    puts "end neighbours are #{neighbours.join(', ')}"
 
     while not neighbours.empty?
         dist += 1
         new_neighbours = []
 
         neighbours.each do |neighbour|
-            neighbour_elevation = elevation(grid, neighbour)
-            puts "checking [#{neighbour.join(',')}] with elevation #{neighbour_elevation}..."
-            
+            #puts "checking [#{neighbour.join(',')}] #{grid_at(grid, neighbour)}..."
             if not dists.has_key?(neighbour)
-                puts "dist to [#{neighbour.join(',')}] is #{dist}..."
                 dists[neighbour] = dist
-                neighbour_neighbours = find_previous_neighbours(grid, neighbour)
-                puts "new neighbours are #{neighbour_neighbours.join(', ')}"
+                neighbour_neighbours = find_previous_neighbours(grid, neighbour).filter { |n| !dists.has_key?(n) }
+                #puts "new neighbours are " + neighbour_neighbours.map { |n| "[#{n.join(',')}]" }.join(', ')
                 new_neighbours += neighbour_neighbours
             end
         end
@@ -82,7 +78,7 @@ end
 def find_previous_neighbours(grid, vertex)
     vertex_elevation = elevation(grid, vertex)
     valid_elevations = [vertex_elevation, vertex_elevation - 1]
-    find_neighbour_vertices(grid, vertex).select { |v| valid_elevations.include?(elevation(grid, v)) }
+    find_neighbour_vertices(grid, vertex).select { |v| elevation(grid, v) >= vertex_elevation - 1 }
 end
 
 def all_vertices(grid)
