@@ -7,61 +7,51 @@ grid = ARGF.read.split("\n").map { |line| line.chars }
     "R" => [1, 0]
 }
 
-def part1(grid)
-    end_v = find_vertex(grid, 'E')
+def compute_dists(grid)
+    the_end = find_letters(grid, 'E')[0]
+    neighbours = find_accessible_neighbours(grid, the_end)
+    dist = 0
     
     dists = {}
-    dists[end_v] = 0
-    dist = 0
-
-    end_elevation = elevation(grid, end_v)
-    neighbours = find_previous_neighbours(grid, end_v)
+    dists[the_end] = dist
 
     while not neighbours.empty?
         dist += 1
-        new_neighbours = []
 
+        new_neighbours = []
         neighbours.each do |neighbour|
-            #puts "checking [#{neighbour.join(',')}] #{grid_at(grid, neighbour)}..."
             if not dists.has_key?(neighbour)
                 dists[neighbour] = dist
-                neighbour_neighbours = find_previous_neighbours(grid, neighbour).filter { |n| !dists.has_key?(n) }
-                #puts "new neighbours are " + neighbour_neighbours.map { |n| "[#{n.join(',')}]" }.join(', ')
-                new_neighbours += neighbour_neighbours
+                new_neighbours += find_accessible_neighbours(grid, neighbour)
             end
         end
 
         neighbours = new_neighbours
     end
 
-    puts dists[find_vertex(grid, 'S')] || "S not found!"
+    dists
 end
 
-def grid_at(grid, vertex)
-    grid[vertex[1]][vertex[0]]
+def find_start(grid)
+    find_letters(grid, 'S')[0]
 end
 
-def elevation(grid, vertex)
-    v = grid_at(grid, vertex)
-    if v == "S"
-        0
-    elsif v == "E"
-        27
-    else
-        v.ord - 96 # a = 0, b = 1, ...
-    end
+def find_end(grid)
+    find_letters(grid, 'E')[0]
 end
 
-def find_vertex(grid, target)
+def find_letters(grid, target_letter)
+    matches = []
     grid.each_with_index do |row, y|
-        start_index = row.index(target)
+        start_index = row.index(target_letter)
         if start_index
-            return [start_index, y]
+            matches.push([start_index, y])
         end
     end
+    matches
 end
 
-def find_neighbour_vertices(grid, vertex)
+def find_neighbours(grid, vertex)
     row_len = grid.length
     col_len = grid[0].length
     neighbours = []
@@ -75,20 +65,23 @@ def find_neighbour_vertices(grid, vertex)
     neighbours
 end
 
-def find_previous_neighbours(grid, vertex)
-    vertex_elevation = elevation(grid, vertex)
-    valid_elevations = [vertex_elevation, vertex_elevation - 1]
-    find_neighbour_vertices(grid, vertex).select { |v| elevation(grid, v) >= vertex_elevation - 1 }
+def find_accessible_neighbours(grid, vertex)
+    vertex_elevation = read_elevation(grid, vertex)
+    find_neighbours(grid, vertex).select { |v| read_elevation(grid, v) >= vertex_elevation - 1 }
 end
 
-def all_vertices(grid)
-    vertices = []
-    (0...grid.length).each do |y|
-        (0...grid[0].length).each do |x|
-            vertices.push([x, y])
-        end
+def read_elevation(grid, vertex)
+    grid_val = grid[vertex[1]][vertex[0]]
+    if grid_val == "S"
+        1
+    elsif grid_val == "E"
+        26
+    else
+        # a = 1, b = 2, ...
+        grid_val.ord - 96
     end
-    vertices
 end
 
-part1(grid)
+dists = compute_dists(grid)
+puts dists[find_start(grid)]
+puts find_letters(grid, 'a').map { |a| dists[a] }.min
