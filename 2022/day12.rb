@@ -8,7 +8,7 @@ grid = ARGF.read.split("\n").map { |line| line.chars }
 }
 
 def compute_dists(grid)
-    the_end = find_letters(grid, 'E')[0]
+    the_end = find_end(grid)
     neighbours = find_accessible_neighbours(grid, the_end)
     dist = 0
     
