@@ -50,7 +50,9 @@ def is_ordered_3(left, right)
                 puts "- Right side is smaller, so inputs are not in the right order"
                 return false
             else
-                return nil
+                if left.empty? and right.empty?
+                    return nil
+                end
             end
         else
             if !r_is_array
