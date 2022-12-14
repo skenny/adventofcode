@@ -9,48 +9,24 @@ def parse_input(input)
     end
 end
 
-def comp(a, b)
-    comp_and_destroy(a.map(&:clone), b.map(&:clone))
-end
+def compare(left, right)
+    left_is_array = Array.try_convert(left) != nil
+    right_is_array = Array.try_convert(right) != nil
 
-def comp_and_destroy(left, right)
-    loop do
-        if left.empty? and right.empty?
-            return 0
-        elsif left.empty? and not right.empty?
-            return -1
-        elsif right.empty?
-            return 1
-        end
-
-        l = left.shift
-        r = right.shift
-
-        l_is_array = Array.try_convert(l) != nil
-        r_is_array = Array.try_convert(r) != nil
-
-        if !l_is_array and !r_is_array
-            if l < r
-                return -1
-            elsif r < l
-                return 1
-            else
-                if left.empty? and right.empty?
-                    return 0
-                end
-            end
-        else
-            if !r_is_array
-                r = [r]
-            elsif !l_is_array
-                l = [l]
-            end
-
-            rez = comp_and_destroy(l, r)
-            if rez != 0
-                return rez
+    if !left_is_array and !right_is_array
+        return left - right
+    elsif !left_is_array
+        return compare([left], right)
+    elsif !right_is_array
+        return compare(left, [right])
+    else
+        (0...[left.size, right.size].min).each do |i|
+            result = compare(left[i], right[i])
+            if result != 0
+                return result
             end
         end
+        return left.size - right.size
     end
 end
 
@@ -58,21 +34,17 @@ def part1(input)
     pairs = parse_input(input)
     ordered_pairs = 0
     pairs.each_with_index do |pair, i|
-        #puts "== Pair #{i+1} =="
         left, right = pair
-        ordered_pairs += (i+1) if comp(left, right) == -1
+        ordered_pairs += (i+1) if compare(left, right) < 0
     end
     ordered_pairs
 end
 
 def part2(input)
-    pairs = parse_input(input)
     divider_packets = [[[2]],[[6]]]
+    pairs = parse_input(input)
     pairs.push(divider_packets)
-    sorted_packets = pairs.flatten(1).sort { |a, b| comp(a, b) }
-    # sorted_packets.each do |packet|
-    #     puts "#{packet}"
-    # end
+    sorted_packets = pairs.flatten(1).sort { |a, b| compare(a, b) }
     (sorted_packets.index(divider_packets[0]) + 1) * (sorted_packets.index(divider_packets[1]) + 1)
 end
 
