@@ -10,6 +10,7 @@ def parse_input(input)
 end
 
 def is_ordered_3(left, right)
+    debug = true
     puts "- Compare #{left} vs #{right}"
     loop do
         if left.empty? and not right.empty?
@@ -22,13 +23,17 @@ def is_ordered_3(left, right)
 
         l = left.shift
         r = right.shift
-        #puts "popped l #{l}"
-        #puts "popped r #{r}"
+        if debug
+            puts "popped l #{l}"
+            puts "popped r #{r}"
+        end
 
         l_is_array = Array.try_convert(l) != nil
         r_is_array = Array.try_convert(r) != nil
-        #puts "l is array? #{l_is_array}"
-        #puts "r is array? #{r_is_array}"
+        if debug
+            puts "l is array? #{l_is_array}"
+            puts "r is array? #{r_is_array}"
+        end
 
         if !l_is_array and !r_is_array
             puts "- Compare #{l} vs #{r}"
@@ -42,7 +47,9 @@ def is_ordered_3(left, right)
             end
 
             if left.empty? and right.empty?
-                #puts "- No more elements, arrays match"
+                if debug
+                    puts "- No more elements, arrays match"
+                end
                 return nil
             end
         else
@@ -51,7 +58,9 @@ def is_ordered_3(left, right)
                 puts "- Mixed types; convert right to [#{r}] and retry comparison"
                 rez = is_ordered_3(l, [r])
                 if rez != nil
-                    #puts "- After converting right from int->array we are ordered!"
+                    if debug
+                        puts "- After converting right from int->array we are ordered!"
+                    end
                     return rez
                 end
             elsif !l_is_array
@@ -59,16 +68,22 @@ def is_ordered_3(left, right)
                 puts "- Mixed types; convert left to [#{l}] and retry comparison"
                 rez = is_ordered_3([l], r)
                 if rez != nil
-                    #puts "- After converting left from int->array we are ordered!"
+                    if debug
+                        puts "- After converting left from int->array we are ordered!"
+                    end
                     return rez
                 end
-            end
-
-            #puts "- Left and right are arrays, recursing..."
-            rez = is_ordered_3(l, r)
-            if rez != nil
-                #puts "- Arrays match, we are ordered!"
-                return rez
+            else
+                if debug
+                    puts "- Left #{l} and right #{r} are arrays, recursing..."
+                end
+                rez = is_ordered_3(l, r)
+                if rez != nil
+                    if debug
+                        puts "- Arrays match, we are ordered!"
+                    end
+                    return rez
+                end
             end
         end
     end
