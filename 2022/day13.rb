@@ -44,12 +44,7 @@ def is_ordered_3(left, right)
             elsif r < l
                 puts "- Right side is smaller, so inputs are not in the right order"
                 return false
-            end
-
-            if left.empty? and right.empty?
-                if debug
-                    puts "- No more elements, arrays match"
-                end
+            else
                 return nil
             end
         else
