@@ -10,10 +10,15 @@ def parse_input(input)
 end
 
 def is_ordered_3(left, right)
-    debug = true
+    debug = false
     puts "- Compare #{left} vs #{right}"
     loop do
-        if left.empty? and not right.empty?
+        if left.empty? and right.empty?
+            if debug
+                puts "both sides are empty, moving on"
+            end
+            return nil
+        elsif left.empty? and not right.empty?
             puts "- Left side ran out of items, so inputs are in the right order"
             return true
         elsif right.empty?
@@ -51,34 +56,22 @@ def is_ordered_3(left, right)
             if !r_is_array
                 puts "- Compare #{l} vs #{r}"
                 puts "- Mixed types; convert right to [#{r}] and retry comparison"
-                rez = is_ordered_3(l, [r])
-                if rez != nil
-                    if debug
-                        puts "- After converting right from int->array we are ordered!"
-                    end
-                    return rez
-                end
+                r = [r]
             elsif !l_is_array
                 puts "- Compare #{l} vs #{r}"
                 puts "- Mixed types; convert left to [#{l}] and retry comparison"
-                rez = is_ordered_3([l], r)
-                if rez != nil
-                    if debug
-                        puts "- After converting left from int->array we are ordered!"
-                    end
-                    return rez
-                end
-            else
+                l = [l]
+            end
+
+            if debug
+                puts "- Left #{l} and right #{r} are arrays, recursing..."
+            end
+            rez = is_ordered_3(l, r)
+            if rez != nil
                 if debug
-                    puts "- Left #{l} and right #{r} are arrays, recursing..."
+                    puts "- Arrays match, we are ordered!"
                 end
-                rez = is_ordered_3(l, r)
-                if rez != nil
-                    if debug
-                        puts "- Arrays match, we are ordered!"
-                    end
-                    return rez
-                end
+                return rez
             end
         end
     end
