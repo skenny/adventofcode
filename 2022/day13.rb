@@ -17,13 +17,13 @@ def is_ordered_3(left, right)
             if debug
                 puts "both sides are empty, moving on"
             end
-            return nil
+            return 0
         elsif left.empty? and not right.empty?
             puts "- Left side ran out of items, so inputs are in the right order"
-            return true
+            return -1
         elsif right.empty?
             puts "- Right side ran out of items, so inputs are not in the right order"
-            return false
+            return 1
         end
 
         l = left.shift
@@ -45,13 +45,13 @@ def is_ordered_3(left, right)
 
             if l < r
                 puts "- Left side is smaller, so inputs are in the right order"
-                return true
+                return -1
             elsif r < l
                 puts "- Right side is smaller, so inputs are not in the right order"
-                return false
+                return 1
             else
                 if left.empty? and right.empty?
-                    return nil
+                    return 0
                 end
             end
         else
@@ -69,7 +69,7 @@ def is_ordered_3(left, right)
                 puts "- Left #{l} and right #{r} are arrays, recursing..."
             end
             rez = is_ordered_3(l, r)
-            if rez != nil
+            if rez != 0
                 if debug
                     puts "- Arrays match, we are ordered!"
                 end
@@ -85,7 +85,7 @@ def part1(pairs)
         left, right = pair
         puts "== Pair #{i+1} =="
         ordered = is_ordered_3(left, right)
-        ordered_pairs << i+1 if ordered
+        ordered_pairs << i+1 if ordered == -1
     end
     ordered_pairs.sum
 end
