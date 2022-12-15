@@ -2,6 +2,7 @@ input = ARGF.read.split("\n")
 
 def plot_cave(input)
     cave = {}
+    max_y = 0
     input.each do |line|
         # 498,4 -> 498,6 -> 496,6
         coords = line.split(' -> ').map { |coord| coord.split(',').map(&:to_i) }
@@ -13,55 +14,89 @@ def plot_cave(input)
             #puts "rendering #{c1} -> #{c2} with ranges #{x_range}, #{y_range}"
             x_range.each do |x|
                 y_range.each do |y|
+                    max_y = [max_y, y].max
                     cave[[x,y]] = '#'
                 end
             end
             c1 = c2
         end
     end
-    cave
-end
-
-def drop_sand(origin, cave)
-    x, y = origin
-
-    loop do
-        # TODO compute max rock depth when plotting the cave
-        if y >= 1000
-            return false
-        end
-
-        #puts "sand at [#{x},#{y}]"
-
-        if cave[[x, y+1]] == nil
-            y += 1
-        elsif cave[[x-1, y+1]] == nil
-            x -= 1
-            y += 1
-        elsif cave[[x+1, y+1]] == nil
-            x += 1
-            y += 1
-        else
-            # blocked
-            cave[[x,y]] = 'o'
-            return true
-        end
-    end
+    [cave, max_y + 2]
 end
 
 def part1(input)
-    cave = plot_cave(input)
+    cave, floor_y = plot_cave(input)
+
     sand_origin = [500, 0]
     sand_count = 0
+
     loop do
-        break if not drop_sand(sand_origin, cave)
+        x, y = sand_origin
+        came_to_rest = false
+
+        loop do
+            if y >= 1000
+                break
+            end
+    
+            #puts "sand at [#{x},#{y}]"
+    
+            if cave[[x, y+1]] == nil
+                y += 1
+            elsif cave[[x-1, y+1]] == nil
+                x -= 1
+                y += 1
+            elsif cave[[x+1, y+1]] == nil
+                x += 1
+                y += 1
+            else
+                # blocked
+                cave[[x,y]] = 'o'
+                came_to_rest = true
+                break
+            end
+        end
+    
+        break if not came_to_rest
         sand_count += 1
     end
+
     puts "dropped #{sand_count} units of sand"
 end
 
 def part2(input)
+    cave, floor_y = plot_cave(input)
+
+    sand_origin = [500, 0]
+    sand_count = 0
+
+    while cave[sand_origin] == nil
+        x, y = sand_origin
+
+        loop do
+            #puts "sand at [#{x},#{y}]"
+
+            if cave[[x, y+1]] == nil and y+1 < floor_y
+                y += 1
+            elsif cave[[x-1, y+1]] == nil and y+1 < floor_y
+                x -= 1
+                y += 1
+            elsif cave[[x+1, y+1]] == nil and y+1 < floor_y
+                x += 1
+                y += 1
+            else
+                # blocked
+                cave[[x,y]] = 'o'
+                came_to_rest = true
+                break
+            end
+        end
+    
+        sand_count += 1
+    end
+
+    puts "dropped #{sand_count} units of sand"
 end
 
 part1(input)
-#part2(input)
+part2(input)
