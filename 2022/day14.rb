@@ -11,7 +11,6 @@ def plot_cave(input)
             c2 = coords.shift
             x_range = ([c1[0], c2[0]].min..[c1[0], c2[0]].max)
             y_range = ([c1[1], c2[1]].min..[c1[1], c2[1]].max)
-            #puts "rendering #{c1} -> #{c2} with ranges #{x_range}, #{y_range}"
             x_range.each do |x|
                 y_range.each do |y|
                     max_y = [max_y, y].max
@@ -38,8 +37,6 @@ def part1(input)
             if y >= 1000
                 break
             end
-    
-            #puts "sand at [#{x},#{y}]"
     
             if cave[[x, y+1]] == nil
                 y += 1
@@ -74,8 +71,6 @@ def part2(input)
         x, y = sand_origin
 
         loop do
-            #puts "sand at [#{x},#{y}]"
-
             if cave[[x, y+1]] == nil and y+1 < floor_y
                 y += 1
             elsif cave[[x-1, y+1]] == nil and y+1 < floor_y
@@ -87,7 +82,6 @@ def part2(input)
             else
                 # blocked
                 cave[[x,y]] = 'o'
-                came_to_rest = true
                 break
             end
         end
