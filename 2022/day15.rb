@@ -60,38 +60,30 @@ def parse_input(input)
         beacons.push([beacon_x, beacon_y])
     end
 
-    [sensors, beacons]
+    [sensors, beacons.uniq]
 end
 
-def part1(sensors, beacons, test_line_y)
-    coverage_ranges = []
-    beacons_on_test_line = beacons.uniq.count { |beacon| beacon[1] == test_line_y }
-
-    sensors.each do |sensor|
-        if sensor.intersects(test_line_y)
-            coverage_range = sensor.coverage_range(test_line_y)
-            coverage_ranges.push(coverage_range) if coverage_range
-        end
-    end
-
-    coverage_ranges.sort!
-
-    puts coverage_ranges.map { |p| "[#{p[0]},#{p[1]}]" }.join(',')
-    coverage_ranges.uniq.count - beacons_on_test_line
-
+def count_coverage(ranges, bounds)
+    ranges.sort!
+    
     coverage = 0
     current_x = nil
-    while not coverage_ranges.empty? do
-        range = coverage_ranges.shift
+
+    while not ranges.empty? do
+        range = ranges.shift
+
         range_start = range[0]
         range_end = range[1]
 
-        puts "coverage is #{coverage}, current_x is #{current_x}, range is #{range_start}..#{range_end}"
+        if bounds
+            range_start = [range_start, bounds[0]].max
+            range_end = [range_end, bounds[1]].min
+        end
 
-        # TODO limit range for part 2
+        #puts "coverage is #{coverage}, current_x is #{current_x}, range is #{range_start}..#{range_end}"
 
         if coverage == 0
-            puts "starting!"
+            #puts "starting!"
             coverage += (range_end - range_start) + 1
             current_x = range_end
             next
@@ -99,7 +91,7 @@ def part1(sensors, beacons, test_line_y)
 
         # if this range is already covered, skip it
         if range_end <= current_x
-            puts "already covered"
+            #puts "already covered"
             next
         end
         
@@ -114,38 +106,50 @@ def part1(sensors, beacons, test_line_y)
         current_x = range_end
     end
 
-    coverage - beacons_on_test_line
+    coverage
+end
+
+def scan_line(sensors, beacons, test_line_y, bounds = nil)
+    #puts "testing line #{test_line_y}, and bounding by #{bounds}"
+    coverage_ranges = []
+
+    sensors.each do |sensor|
+        if sensor.intersects(test_line_y)
+            coverage_range = sensor.coverage_range(test_line_y)
+            coverage_ranges.push(coverage_range) if coverage_range
+        end
+    end
+
+    count_coverage(coverage_ranges, bounds)
+end
+
+def part1(sensors, beacons)
+    a = Time.new.to_i * 1000
+    test_line = 2_000_000
+    puts scan_line(sensors, beacons, test_line) - beacons.count { |beacon| beacon[1] == test_line }
+    puts "part 1 took #{Time.new.to_i * 1000 - a}ms"
 end
 
 def part2(sensors, beacons)
+    a = Time.new.to_i * 1000
+
     distress_beacon = [0,0]
+    bounds = [0, 4_000_000]
 
     (0...4_000_000).each do |y|
-        points_on_line = part1(sensors, beacons, y)
-        if 4_000_000 - points_on_line == 1
+        coverage = scan_line(sensors, beacons, y, bounds)
+        if 4_000_000 - coverage == 1
             puts "it's on line #{y}"
+            distress_beacon = [0, y]
+            break
         end
     end
+
+    puts "part 2 took #{Time.new.to_i * 1000 - a}ms"
 
     4_000_000 * distress_beacon[0] + distress_beacon[1]
 end
 
 sensors, beacons = parse_input(input)
-
-a = Time.new.to_i * 1000
-puts part1(sensors, beacons, 2000000)
-puts "part 1 took #{Time.new.to_i * 1000 - a}ms"
-
-a = Time.new.to_i * 1000
+puts part1(sensors, beacons)
 #puts part2(sensors, beacons)
-#puts "part 2 took #{Time.new.to_i * 1000 - a}ms"
-
-
-
-=begin
-                 1    1    2    2
-       0    5    0    5    0    5
- 9 ...#########################...
-10 ..####B######################..
-11 .###S#############.###########.
-=end
