@@ -81,83 +81,56 @@ def compute_flow(start, path)
     total_flow
 end
 
-def find_paths_old(valves_to_open)
-    current = valves['AA']
-    paths = []
-    valves_to_open.sort { |a,b| b.flow_rate - a.flow_rate }
-
-    30.times do |minute|
-        puts "minute #{minute}..."
-
-        new_paths = []
-        paths.each do |path|
-            #puts "current path length is #{path.size}; #{path.map(&:name)}"
-            current_valve = path.last
-            if current_valve.flow_rate > 0
-                new_paths.append(path + [current_valve])    # stay here to open the valve
-            end
-            current_valve.connected_valves.each do |neighbour|
-                new_paths.append(path + [neighbour])
-            end
-        end
-
-        if new_paths.size > 10_000
-            new_paths = new_paths.sort { |a,b| run_path(b) - run_path(a) }
-        end
-
-        paths = new_paths[0..10_000]
-    end
-
-    paths
-end
-
 def find_valve_paths(valve, valves_to_open, time_left)
     paths = []
-    dfs(valve, valves_to_open, time_left, [], paths)
+    build_paths_recursive(valve, valves_to_open, time_left, [], paths)
     paths
 end
 
-def dfs(valve, valves_to_open, time_left, visited, paths)
+def build_paths_recursive(valve, valves_to_open, time_left, current_path, paths)
     if time_left > 0
         valves_to_open.each do |next_valve|
-            if visited.include?(next_valve)
-                next
-            end
             time_to_move_and_open = valve.distance_to(next_valve) - 1
             if time_left - time_to_move_and_open <= 0
                 next
             end
-            dfs(next_valve, valves_to_open, time_left - time_to_move_and_open, visited + [next_valve], paths)
+            build_paths_recursive(next_valve, valves_to_open - [next_valve], time_left - time_to_move_and_open, current_path + [next_valve], paths)
         end
     end
-    paths.append(visited)
+    paths.append(current_path)
 end
 
 def part1(valves)
-    puts "Starting at #{Time.new}..."
+    start_time = Time.new
+    puts "Starting at #{start_time}..."
+
     start = valves['AA']
-
     valves_to_open = valves.values.select { |v| v.flow_rate > 0 }
-    valve_paths = find_valve_paths(start, valves_to_open, 30)
-    num_possible_paths = valve_paths.size
-    puts "Found #{num_possible_paths} possible paths..."
-
+    possible_paths = find_valve_paths(start, valves_to_open, 30)
+    num_possible_paths = possible_paths.size
+    log_every = num_possible_paths / 10;
     best = 0
     count = 0
     start_time_s = Time.new.to_i
-    valve_paths.each do |path|
+
+    puts "Found #{num_possible_paths} possible paths..."
+
+    possible_paths.each do |path|
         path_flow = compute_flow(start, path)
-        best = [best, path_flow].max
-        if count % 10_000_000 == 0
-            pct = count / num_possible_paths * 100
-            elapsed_s = Time.new.to_i - start_time_s
-            puts "[#{elapsed_s}s #{pct}%] checked #{count}, best is #{best}, latest was #{path.map(&:name)} with #{path_flow}..."
+        if path_flow > best
+            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, found a new best path #{path} with #{path_flow}..."
+            best = path_flow
+        end
+        if count % log_every == 0
+            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, best is #{best}, latest was #{path.map(&:name)} with #{path_flow}..."
         end
         count += 1
     end
 
-    puts best.to_s
-    puts "Finished at #{Time.new}..."
+    end_time = Time.new
+
+    puts "Best is #{best}"
+    puts "Finished at #{end_time}, #{end_time.to_i * 1000 - start_time.to_i * 1000}ms..."
 end
 
 valves = parse_input(ARGF.readlines)
