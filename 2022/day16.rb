@@ -81,9 +81,9 @@ def compute_flow(start, path)
     total_flow
 end
 
-def find_valve_paths(valve, valves_to_open, time_left)
+def find_valve_paths(start, valves_to_open, time_left)
     paths = []
-    build_paths_recursive(valve, valves_to_open, time_left, [], paths)
+    build_paths_recursive(start, valves_to_open, time_left, [], paths)
     paths
 end
 
