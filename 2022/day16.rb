@@ -83,26 +83,19 @@ end
 
 def find_valve_paths(valve, valves_to_open, time_left)
     paths = []
-    build_paths_recursive(valve, valves_to_open, time_left, [], paths, Time.new.to_i, 0)
+    build_paths_recursive(valve, valves_to_open, time_left, [], paths)
     paths
 end
 
-def build_paths_recursive(valve, valves_to_open, time_left, current_path, paths, start_time_s, counter)
-    if paths.size % 10_000_000 == 0
-        puts "[#{Time.new.to_i - start_time_s}s, #{counter}] valve #{valve}, valves_to_open #{valves_to_open}, time_left #{time_left}, current_path #{current_path}, found #{paths.count}"
-    end
-    counter += 1
-    if not valves_to_open.empty?
-        valves_to_open.each do |next_valve|
-            time_to_move_and_open = valve.distance_to(next_valve) + 1
-            next_time = time_left - time_to_move_and_open
-            if next_time > 0
-                build_paths_recursive(next_valve, valves_to_open - [next_valve], next_time, current_path + [next_valve], paths, start_time_s, counter)
-            end
+def build_paths_recursive(valve, valves_to_open, time_left, current_path, paths)
+    valves_to_open.each do |next_valve|
+        time_to_move_and_open = valve.distance_to(next_valve) + 1
+        new_time_left = time_left - time_to_move_and_open
+        if new_time_left > 0
+            build_paths_recursive(next_valve, valves_to_open - [next_valve], new_time_left, current_path + [next_valve], paths)
         end
-        paths.append(current_path)
     end
-    paths
+    paths.append(current_path)
 end
 
 def part1(valves)
