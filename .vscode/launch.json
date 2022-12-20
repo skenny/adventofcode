@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${file}"
             "args": [
-                "2022/input/day18test.txt"
+                "2022/input/day18.txt"
             ],
         }
     ]
