@@ -68,8 +68,7 @@ def parse_input(input)
     valves
 end
 
-def compute_flow(start, path)
-    time = 30
+def compute_flow(start, path, time)
     total_flow = 0
     current_valve = start
     path.each do |next_valve|
@@ -114,13 +113,13 @@ def part1(valves)
     puts "Found #{num_possible_paths} possible paths..."
 
     possible_paths.each do |path|
-        path_flow = compute_flow(start, path)
+        path_flow = compute_flow(start, path, 30)
         if path_flow > best
             puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, found a new best path #{path} with #{path_flow}..."
             best = path_flow
         end
         if count % log_every == 0
-            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, best is #{best}, latest was #{path.map(&:name)} with #{path_flow}..."
+            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, best is #{best}, latest was #{path} with #{path_flow}..."
         end
         count += 1
     end
@@ -140,29 +139,22 @@ def part2(valves)
     valves_to_open = valves.values.select { |v| v.flow_rate > 0 }
     possible_paths = find_valve_paths(start, valves_to_open, 26)
 
-    split_paths = possible_paths.permutation(valves_to_open.size / 2).each do |combo|
-        puts "First pair is #{combo}"
-        break
-    end
-
-    
-
-    num_possible_paths = possible_paths.size
-    log_every = num_possible_paths / 10;
+    log_every = 100_000_000;
     best = 0
     count = 0
     start_time_s = Time.new.to_i
 
-    puts "Found #{num_possible_paths} possible paths..."
-
-    possible_paths.each do |path|
-        path_flow = compute_flow(start, path)
+    split_paths = possible_paths.permutation(valves_to_open.size / 2).each do |combo|
+        path1, path2 = combo
+        path_flow_1 = compute_flow(start, path1, 26)
+        path_flow_2 = compute_flow(start, path2, 26)
+        path_flow = path_flow_1 + path_flow_2
         if path_flow > best
-            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, found a new best path #{path} with #{path_flow}..."
+            puts "[#{Time.new.to_i - start_time_s}s] checked #{count}, found a new best paths #{path1}, #{path2} with #{path_flow}..."
             best = path_flow
         end
         if count % log_every == 0
-            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, best is #{best}, latest was #{path.map(&:name)} with #{path_flow}..."
+            puts "[#{Time.new.to_i - start_time_s}s] checked #{count}, best is #{best}, latest was #{path1}, #{path2} with #{path_flow}..."
         end
         count += 1
     end
@@ -172,7 +164,6 @@ def part2(valves)
     puts "Best is #{best}"
     puts "Finished at #{end_time}, #{end_time.to_i * 1000 - start_time.to_i * 1000}ms..."
 end
-
 
 valves = parse_input(ARGF.readlines)
 valves.values.each { |valve| valve.compute_distances }
