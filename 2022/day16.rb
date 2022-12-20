@@ -1,5 +1,4 @@
 class Valve
-    
     attr_accessor :name, :flow_rate, :connected_valves
 
     def initialize(name, flow_rate)
@@ -80,6 +79,48 @@ def compute_flow(start, path, time)
     total_flow
 end
 
+def compute_flow_with_elephant(start, path, time)
+    closed_valves = path.map.to_a   # make a copy
+    total_flow = 0
+    my_time = time
+    my_valve = start
+    elephant_time = time
+    elephant_valve = start
+
+#    puts "testing path #{closed_valves}..."
+
+    while not closed_valves.empty? do
+        my_next_move_time = my_valve.distance_to(closed_valves.first) + 1
+        i_can_move = my_time - my_next_move_time > 0
+        if i_can_move
+            my_time -= my_next_move_time
+            my_valve = closed_valves.shift
+            total_flow += my_time * my_valve.flow_rate
+            #puts "\tyou open valve #{my_valve}; my time left is now #{my_time}"
+        end
+
+        elephant_can_move = false
+        if not closed_valves.empty?
+            elephant_next_move_time = elephant_valve.distance_to(closed_valves.first) + 1
+            elephant_can_move = elephant_time - elephant_next_move_time > 0
+            if elephant_can_move
+                elephant_time -= elephant_next_move_time
+                elephant_valve = closed_valves.shift
+                total_flow += elephant_time * elephant_valve.flow_rate
+             #   puts "\telephant opens valve #{elephant_valve}; elephant time left is now #{elephant_time}"
+            end
+        end
+
+        #puts "\tflow is now #{total_flow}"
+
+        if not i_can_move and not elephant_can_move
+            break
+        end
+    end
+
+    total_flow
+end
+
 def find_valve_paths(start, valves_to_open, time_left)
     paths = []
     build_paths_recursive(start, valves_to_open, time_left, [], paths)
@@ -101,9 +142,10 @@ def part1(valves)
     start_time = Time.new
     puts "Starting at #{start_time}..."
 
+    time_limit = 30
     start = valves['AA']
     valves_to_open = valves.values.select { |v| v.flow_rate > 0 }
-    possible_paths = find_valve_paths(start, valves_to_open, 30)
+    possible_paths = find_valve_paths(start, valves_to_open, time_limit)
     num_possible_paths = possible_paths.size
     log_every = num_possible_paths / 10;
     best = 0
@@ -113,7 +155,7 @@ def part1(valves)
     puts "Found #{num_possible_paths} possible paths..."
 
     possible_paths.each do |path|
-        path_flow = compute_flow(start, path, 30)
+        path_flow = compute_flow(start, path, time_limit)
         if path_flow > best
             puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, found a new best path #{path} with #{path_flow}..."
             best = path_flow
@@ -130,31 +172,31 @@ def part1(valves)
     puts "Finished at #{end_time}, #{end_time.to_i * 1000 - start_time.to_i * 1000}ms..."
 end
 
-
 def part2(valves)
     start_time = Time.new
     puts "Starting at #{start_time}..."
 
+    time_limit = 26
     start = valves['AA']
     valves_to_open = valves.values.select { |v| v.flow_rate > 0 }
-    possible_paths = find_valve_paths(start, valves_to_open, 26)
-
-    log_every = 100_000_000;
+    sorted_valves_to_open = valves_to_open.sort { |a,b| b.flow_rate - a.flow_rate }
+    possible_paths = find_valve_paths(start, valves_to_open, time_limit * 26)
+    num_possible_paths = possible_paths.size
+    log_every = num_possible_paths / 10;
     best = 0
     count = 0
     start_time_s = Time.new.to_i
 
-    split_paths = possible_paths.permutation(valves_to_open.size / 2).each do |combo|
-        path1, path2 = combo
-        path_flow_1 = compute_flow(start, path1, 26)
-        path_flow_2 = compute_flow(start, path2, 26)
-        path_flow = path_flow_1 + path_flow_2
+    puts "Found #{num_possible_paths} possible paths in #{(Time.now.to_i * 1000) - (start_time.to_i * 1000)}ms..."
+
+    possible_paths.each do |path|
+        path_flow = compute_flow_with_elephant(start, path, time_limit)
         if path_flow > best
-            puts "[#{Time.new.to_i - start_time_s}s] checked #{count}, found a new best paths #{path1}, #{path2} with #{path_flow}..."
+            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, found a new best path #{path} with #{path_flow}..."
             best = path_flow
         end
         if count % log_every == 0
-            puts "[#{Time.new.to_i - start_time_s}s] checked #{count}, best is #{best}, latest was #{path1}, #{path2} with #{path_flow}..."
+            puts "[#{Time.new.to_i - start_time_s}s #{(count.fdiv(num_possible_paths)).round(1) * 100}%] checked #{count}, best is #{best}, latest was #{path} with #{path_flow}..."
         end
         count += 1
     end
