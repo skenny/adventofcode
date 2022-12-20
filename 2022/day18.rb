@@ -1,5 +1,7 @@
+require 'set'
+
 class World
-    
+
     @@face_directions = [
         [1, 0, 0],
         [-1, 0, 0],
@@ -22,25 +24,19 @@ class World
 
     def flood_fill(points, fill)
         while not points.empty?
-            next_points = []
+            next_points = Set.new
             points.each { |point|
                 set(point, fill)
-                next_neighbours = find_neighbours(point).select { |neighbour|
+                next_points += find_neighbours(point).select { |neighbour|
                     is_in_bounds(neighbour) and get(neighbour) == :air
                 }
-                # I should just figure out how to use sets in ruby...
-                next_points = (next_points + next_neighbours).uniq
             }
             points = next_points
         end
     end
         
     def find_neighbours(point)
-        x, y, z = point
-        @@face_directions.map do |face_direction|
-            f_x, f_y, f_z = face_direction
-            [x + f_x, y + f_y, z + f_z]
-        end
+        @@face_directions.map { |dir| [point, dir].transpose.map(&:sum) }
     end
 
     def is_in_bounds(point)
