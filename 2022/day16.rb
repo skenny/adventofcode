@@ -11,11 +11,11 @@ class Valve
         @connected_valves = other_valves
     end
 
-    def distances_to_valves(valves)
+    def shortest_paths_to_valves(valves)
         @dists.select { |other_valve, dist| valves.include?(other_valve) }
     end
 
-    def compute_distances
+    def compute_shortest_paths
         neighbours = @connected_valves
         dist = 0
         
@@ -37,10 +37,6 @@ class Valve
         end
     
         @dists = dists
-    end
-
-    def distance_to(valve)
-        @dists[valve]
     end
 
     def to_s
@@ -73,7 +69,7 @@ end
 
 def search_paths(current_valve, to_visit, time_allowed, time_taken = 0, total_flow = 0)
     best_flow = current_valve
-        .distances_to_valves(to_visit)
+        .shortest_paths_to_valves(to_visit)
         .select { |valve, dist| time_taken + dist + 1 < time_allowed }
         .map { |next_valve, dist|
             search_paths(
@@ -127,7 +123,7 @@ def part2(valves)
 end
 
 valves = parse_input(ARGF.readlines)
-valves.values.each { |valve| valve.compute_distances }
+valves.values.each { |valve| valve.compute_shortest_paths }
 
 part1(valves)
 part2(valves)
