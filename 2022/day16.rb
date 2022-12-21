@@ -71,17 +71,16 @@ def parse_input(input)
     valves
 end
 
-def search_paths(current_valve, to_visit, time_allowed, visited = [], time_taken = 0, total_flow = 0)
+def search_paths(current_valve, to_visit, time_allowed, time_taken = 0, total_flow = 0)
     best_flow = current_valve
         .distances_to_valves(to_visit)
-        .select { |valve, dist| (not visited.include?(valve)) and time_taken + dist + 1 < time_allowed }
+        .select { |valve, dist| time_taken + dist + 1 < time_allowed }
         .map { |next_valve, dist|
             search_paths(
                 next_valve,
-                to_visit, 
-                time_allowed, 
-                visited + [next_valve], 
-                time_taken + dist + 1, 
+                to_visit - [next_valve],
+                time_allowed,
+                time_taken + dist + 1,
                 total_flow + (next_valve.flow_rate * (time_allowed - time_taken - dist - 1))
             )
         }
