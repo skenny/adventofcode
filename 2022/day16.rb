@@ -72,19 +72,21 @@ def parse_input(input)
 end
 
 def search_paths(current_valve, to_visit, time_allowed, visited = [], time_taken = 0, total_flow = 0)
-    #puts "at #{current_valve}, visited #{visited}, time_taken=#{time_taken}, total_flow=#{total_flow}"
-    current_valve
+    best_flow = current_valve
         .distances_to_valves(to_visit)
         .select { |valve, dist| (not visited.include?(valve)) and time_taken + dist + 1 < time_allowed }
-        .max_by { |next_valve, dist| search_paths(
-            next_valve, 
-            to_visit, 
-            time_allowed, 
-            visited + [next_valve], 
-            time_taken + dist + 1, 
-            total_flow + (next_valve.flow_rate * (time_allowed - time_taken - dist - 1))
-        )[1] }
-    return total_flow
+        .map { |next_valve, dist|
+            search_paths(
+                next_valve,
+                to_visit, 
+                time_allowed, 
+                visited + [next_valve], 
+                time_taken + dist + 1, 
+                total_flow + (next_valve.flow_rate * (time_allowed - time_taken - dist - 1))
+            )
+        }
+        .max
+    best_flow || total_flow
 end
 
 def part1(valves)
@@ -95,16 +97,14 @@ def part1(valves)
     start = valves['AA']
     valves_to_open = valves.values.select { |v| v.flow_rate > 0 }
 
-    count = 0
     best = valves_to_open
-        .permutation(valves_to_open.size)
+        .combination(valves_to_open.size)
         .map { |path| search_paths(start, valves_to_open, time_limit) }
         .max
 
     end_time = Time.new
 
-    puts "Checked #{count}"
-    puts "Best is #{best}"
+    puts "Part 1: #{best}"
     puts "Finished at #{end_time}, #{end_time.to_i * 1000 - start_time.to_i * 1000}ms..."
 end
 
@@ -116,21 +116,14 @@ def part2(valves)
     start = valves['AA']
     valves_to_open = valves.values.select { |v| v.flow_rate > 0 }
 
-    best = 0
-    count = 0
-    best_path = valves_to_open
-        .combination(valves_to_open.size / 2) do |half_path|
-            other_half = valves_to_open - half_path
-            if count % 10_000 == 0
-                puts "[#{Time.new.to_i - start_time.to_i}s #{count}] #{half_path} vs #{other_half}"
-            end
-            best = [best, search_paths(start, half_path, time_limit) + search_paths(start, other_half, time_limit)].max
-            count += 1
-        end
+    best = valves_to_open
+        .combination(valves_to_open.size / 2)
+        .map { |half_path| search_paths(start, half_path, time_limit) + search_paths(start, valves_to_open - half_path, time_limit) }
+        .max
 
     end_time = Time.new
 
-    puts "Best is #{best}"
+    puts "Part 2: #{best}"
     puts "Finished at #{end_time}, #{end_time.to_i * 1000 - start_time.to_i * 1000}ms..."
 end
 
@@ -138,4 +131,4 @@ valves = parse_input(ARGF.readlines)
 valves.values.each { |valve| valve.compute_distances }
 
 part1(valves)
-#part2(valves)
+part2(valves)
