@@ -102,6 +102,10 @@ class Chamber
         @active_rock.top_right[0] < @@chamber_width
     end
 
+    def can_active_rock_move_down
+        @active_rock.bottom_left[1] > 0
+    end
+
     def apply_jet
         jet_direction = @jet_pattern[@jet_index]
         @jet_index = (@jet_index + 1) % @jet_pattern.length
@@ -123,16 +127,14 @@ class Chamber
     end
 
     def drop
-        if @active_rock.bottom_left[1] == 0
+        if can_active_rock_move_down
+            puts "Rock falls 1 unit:"
+            @active_rock.move_down
+        else
             puts "Rock falls 1 unit, causing it to come to rest:"
             # TODO this might be a problem when we null out active rock? maybe actually freeze the # into a 2d array?
             @settled_rocks.push(@active_rock)
             @active_rock = nil
-        elsif false
-            # TODO bottom collision with settled rock
-        else
-            puts "Rock falls 1 unit:"
-            @active_rock.move_down
         end
     end
 
