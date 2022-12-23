@@ -67,9 +67,8 @@ class Chamber
     end
 
     def play_rock
-        next_index = @rock_index % @@rock_shapes.length
-        @rock_index += 1
-        rock = Rock.new(next_index, @@rock_shapes[@@rock_order[next_index]]).apply(Point.new(2, height + 4))
+        rock = Rock.new(@rock_index, @@rock_shapes[@@rock_order[@rock_index]]).apply(Point.new(2, height + 4))
+        @rock_index = (@rock_index + 1) % @@rock_shapes.length
 
         step = 0
         loop do
