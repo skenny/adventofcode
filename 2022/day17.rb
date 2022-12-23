@@ -10,13 +10,13 @@ Point = Struct.new(:x, :y) do
     end
 end
 
-Rock = Struct.new(:points) do
+Rock = Struct.new(:count, :points) do
     def apply(delta)
-        Rock.new(points.map { |p| p.plus(delta) })
+        Rock.new(count, points.map { |p| p.plus(delta) })
     end
 
     def to_s
-        points.map(&:to_s).join(", ")
+        "#{count} " + points.map(&:to_s).join(", ")
     end
 end
 
@@ -37,7 +37,7 @@ class RockGenerator
     def next_rock
         next_index = @rock_index % @@rock_shapes.length
         @rock_index += 1
-        Rock.new(@@rock_shapes[@@rock_order[next_index]])
+        Rock.new(next_index, @@rock_shapes[@@rock_order[next_index]])
     end
 end
 
@@ -48,6 +48,8 @@ class Chamber
         "v" => Point.new(0,-1)
     }
     @@chamber_width = 7
+
+    @@seen_rock_jets = {}
 
     def initialize(jet_pattern)
         @jet_pattern = jet_pattern
@@ -75,6 +77,12 @@ class Chamber
     end
 
     def play_rock(rock)
+        key = [rock.count, @jet_index]
+        if @@seen_rock_jets.has_key?(key)
+            puts "pattern? rock index is #{key[0]}, jet index is #{key[1]}"
+        end
+        @@seen_rock_jets[key] = true
+
         rock = rock.apply(Point.new(2, height + 4))
         step = 0
         
