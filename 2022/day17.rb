@@ -1,4 +1,4 @@
-input = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
+input = ARGF.read.strip
 
 Point = Struct.new(:x, :y) do
     def plus(delta)
