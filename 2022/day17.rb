@@ -42,6 +42,10 @@ class RockGenerator
 end
 
 class Chamber 
+    @@jet_directions = {
+        "<" => Point.new(-1,0),
+        ">" => Point.new(1,0)
+    }
     @@chamber_width = 7
 
     def initialize(jet_pattern)
@@ -78,11 +82,7 @@ class Chamber
             if step % 2 == 0
                 jet_direction = @jet_pattern[@jet_index]
                 @jet_index = (@jet_index + 1) % @jet_pattern.length
-                if jet_direction == "<"
-                    delta = Point.new(-1,0)
-                else
-                    delta = Point.new(1, 0)
-                end
+                delta = @@jet_directions[jet_direction]
             else
                 delta = Point.new(0, -1)
             end
@@ -105,9 +105,11 @@ end
 chamber = Chamber.new(input)
 rock_generator = RockGenerator.new
 
+puts Time.new.to_s
 2022.times do |i|
     puts "Rock ##{i}..." if i % 500 == 0
     chamber.play_rock(rock_generator.next_rock)
     #chamber.draw
 end
+puts Time.new.to_s
 puts chamber.height
