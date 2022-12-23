@@ -22,7 +22,7 @@ Rock = Struct.new(:count, :points) do
     end
 end
 
-class RockGenerator
+class Chamber 
     @@rock_shapes = {
         :hline => [Point.new(0,0), Point.new(1,0), Point.new(2,0), Point.new(3,0)],
         :plus  => [Point.new(1,2), Point.new(0,1), Point.new(1,1), Point.new(2,1), Point.new(1,0)],
@@ -31,31 +31,17 @@ class RockGenerator
         :block => [Point.new(0,1), Point.new(1,1), Point.new(0,0), Point.new(1,0)]
     }
     @@rock_order = [:hline, :plus, :ell, :vline, :block]
-
-    def initialize
-        @rock_index = 0
-    end
-
-    def next_rock
-        next_index = @rock_index % @@rock_shapes.length
-        @rock_index += 1
-        Rock.new(next_index, @@rock_shapes[@@rock_order[next_index]])
-    end
-end
-
-class Chamber 
-    @@jet_directions = {
+    @@directions = {
         "<" => Point.new(-1,0),
         ">" => Point.new(1,0),
         "v" => Point.new(0,-1)
     }
     @@chamber_width = 7
 
-    @@seen_rock_jets = {}
-
     def initialize(jet_pattern)
         @jet_pattern = jet_pattern
         @jet_index = 0
+        @rock_index = 0
 
         # fill the bottom row [x,0]; using a set is way faster than enumerable/array
         @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) }.to_set
@@ -80,27 +66,22 @@ class Chamber
         rock.points.all? { |point| point.x >= 0 and point.x < @@chamber_width}
     end
 
-    def play_rock(rock)
-        # key = [rock.count, @jet_index]
-        # if @@seen_rock_jets.has_key?(key)
-        #     puts "pattern? rock index is #{key[0]}, jet index is #{key[1]}"
-        # end
-        # @@seen_rock_jets[key] = true
+    def play_rock
+        next_index = @rock_index % @@rock_shapes.length
+        @rock_index += 1
+        rock = Rock.new(next_index, @@rock_shapes[@@rock_order[next_index]]).apply(Point.new(2, height + 4))
 
-        rock = rock.apply(Point.new(2, height + 4))
         step = 0
-        
         loop do
-            delta = nil
+            direction = "v"
             if step % 2 == 0
-                jet_direction = @jet_pattern[@jet_index]
+                direction = @jet_pattern[@jet_index]
                 @jet_index = (@jet_index + 1) % @jet_pattern.length
-                delta = @@jet_directions[jet_direction]
-            else
-                delta = @@jet_directions["v"]
             end
 
+            delta = @@directions[direction]
             try_move = rock.apply(delta)
+
             if in_bounds(try_move) and @fill.intersection(try_move.points.to_set).empty?
                 rock = try_move
             else
@@ -115,13 +96,17 @@ class Chamber
     end
 end
 
-chamber = Chamber.new(input)
-rock_generator = RockGenerator.new
-
-puts Time.new.to_s
-2022.times do |i|
-    chamber.play_rock(rock_generator.next_rock)
-    #chamber.draw
+def part1(input)
+    chamber = Chamber.new(input)
+    2022.times { chamber.play_rock }
+    puts chamber.height
 end
-puts Time.new.to_s
-puts chamber.height
+
+def part2(input)
+    chamber = Chamber.new(input)
+    1_000_000_000_000.times { chamber.play_rock }
+    puts chamber.height
+end
+
+part1(input)
+#part2(input)
