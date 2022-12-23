@@ -42,20 +42,27 @@ class Chamber
         @jet_pattern = jet_pattern
         @jet_index = 0
         @rock_index = 0
+        @rock_counter = 0
+        @@seen_states = {}
 
         # fill the bottom row [x,0]; using a set is way faster than enumerable/array
         @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) }.to_set
     end
 
-    def draw
-        (1..height).each do |y|
+    def rasterize(num_rows = 0)
+        actual_height = height
+        stop_at = num_rows == 0 ? actual_height : num_rows
+        stop_at = [stop_at, actual_height].min
+        rows = []
+        (1..stop_at).each do |y|
             row = ""
             (0...@@chamber_width).each do |x|
                 row += @fill.include?(Point.new(x, height - y + 1)) ? "#" : "."
             end
-            puts "|#{row}|"
+            rows.push("|#{row}|")
         end
-        puts "+" + ("-" * @@chamber_width) + "+\n\n"
+        rows.push("+" + ("-" * @@chamber_width) + "+")
+        rows
     end
 
     def height
@@ -67,7 +74,14 @@ class Chamber
     end
 
     def play_rock
-        rock = Rock.new(@rock_index, @@rock_shapes[@@rock_order[@rock_index]]).apply(Point.new(2, height + 4))
+        this_rock_index = @rock_index
+        state = [this_rock_index, @jet_index]
+        if @@seen_states.has_key?(state)
+            puts "rock #{this_rock_index}, jet #{@jet_index}, height #{height}, rocks dropped #{@rock_counter}, top #{rasterize(10).join}"
+        end
+        @@seen_states[state] = true
+
+        rock = Rock.new(@this_rock_index, @@rock_shapes[@@rock_order[@rock_index]]).apply(Point.new(2, height + 4))
         @rock_index = (@rock_index + 1) % @@rock_shapes.length
 
         step = 0
@@ -92,6 +106,8 @@ class Chamber
 
             step += 1
         end
+        
+        @rock_counter += 1
     end
 end
 
@@ -107,5 +123,5 @@ def part2(input)
     puts chamber.height
 end
 
-part1(input)
-#part2(input)
+#part1(input)
+part2(input)
