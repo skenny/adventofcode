@@ -1,54 +1,12 @@
 input = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
 
-class Rock
-    attr_accessor :height, :width
-
-    def initialize(shape_str)
-        @shape_str = shape_str
-        @shape_arr = shape_str.split("\n").map(&:chars)
-        @height = @shape_arr.length
-        @width = @shape_arr[0].length
+Point2d = Struct.new(:x, :y) do
+    def plus(delta)
+        Point2d.new(x + delta.x, y + delta.y)
     end
 
-    def position
-        [@x, @y]
-    end
-
-    def position_at(x, bottom_y)
-        @x = x
-        @y = bottom_y + @height
-    end
-
-    def top_left
-        [@x, @y]
-    end
-
-    def top_right
-        [@x + @width, @height]
-    end
-
-    def bottom_left
-        [@x, @y - @height]
-    end
-
-    def bottom_right
-        [@x + @width, @y - @height]
-    end
-
-    def move_down
-        @y -= 1
-    end
-
-    def move_right
-        @x += 1
-    end
-
-    def move_left
-        @x -= 1
-    end
-    
     def to_s
-        "[#{@x},#{@y}]"
+        "[#{x},#{y}]"
     end
 end
 
@@ -69,7 +27,34 @@ class RockGenerator
     def next_rock
         next_index = @rock_index % @@rock_shapes.length
         @rock_index += 1
-        Rock.new(@@rock_shapes[@@rock_order[next_index]])
+
+        shape_str = @@rock_shapes[@@rock_order[next_index]]
+        shape_arr = shape_str.split("\n").map(&:chars)
+
+        height = shape_arr.length
+        width = shape_arr[0].length
+
+        points = []
+        (0...height).each do |y|
+            (0...width).each do |x|
+                # [0,0] is bottom left
+                points.push(Point2d.new(x, height - y - 1)) if shape_arr[y][x] == "@"
+            end
+        end
+
+        Rock.new(points)
+    end
+end
+
+class Rock
+    attr_accessor :points
+
+    def initialize(points)
+        @points = points
+    end
+
+    def apply(delta)
+        Rock.new(@points.map { |p| p.plus(delta) })
     end
 end
 
@@ -79,8 +64,7 @@ class Chamber
     def initialize(jet_pattern)
         @jet_pattern = jet_pattern
         @jet_index = 0
-        @settled_rocks = []
-        @active_rock = nil
+        @fill = (0...@@chamber_width).map { |x| Point2d.new(x, 0) } # fill the bottom row [x,0]
     end
 
     def draw
@@ -89,62 +73,45 @@ class Chamber
     end
 
     def height
-        @settled_rocks.map { |rock_position| rock_position.top_left[1] }.max || 0
-    end
-
-    def can_active_rock_move_left
-        # TODO left collision with settled rock
-        @active_rock.top_left[0] > 0
-    end
-
-    def can_active_rock_move_right
-        # TODO right collision with settled rock
-        @active_rock.top_right[0] < @@chamber_width
-    end
-
-    def can_active_rock_move_down
-        @active_rock.bottom_left[1] > 0
-    end
-
-    def apply_jet
-        jet_direction = @jet_pattern[@jet_index]
-        @jet_index = (@jet_index + 1) % @jet_pattern.length
-        if jet_direction == "<"
-            if can_active_rock_move_left
-                puts "Jet of gas pushes rock left:"
-                @active_rock.move_left
-            else 
-                puts "Jet of gas pushes rock left, but nothing happens:"
-            end
-        else
-            if can_active_rock_move_right
-                puts "Jet of gas pushes rock right:"
-                @active_rock.move_right 
-            else
-                puts "Jet of gas pushes rock right, but nothing happens:"
-            end
-        end
-    end
-
-    def drop
-        if can_active_rock_move_down
-            puts "Rock falls 1 unit:"
-            @active_rock.move_down
-        else
-            puts "Rock falls 1 unit, causing it to come to rest:"
-            # TODO this might be a problem when we null out active rock? maybe actually freeze the # into a 2d array?
-            @settled_rocks.push(@active_rock)
-            @active_rock = nil
-        end
+        @fill.map { |x,y| y }.max || 0
     end
 
     def play_rock(rock)
         puts "A new rock begins falling:"
-        @active_rock = rock
-        @active_rock.position_at(2, height + 3)
+        rock = rock.apply(Point2d.new(2, height + 4))
         step = 0
-        while @active_rock
-            step % 2 == 0 ? apply_jet : drop
+        loop do
+            if step % 2 == 0
+                jet_direction = @jet_pattern[@jet_index]
+                @jet_index = (@jet_index + 1) % @jet_pattern.length
+                if jet_direction == "<"
+                    try_left = rock.apply(Point2d.new(-1, 0))
+                    if @fill.intersection(try_left.points).empty?
+                        puts "Jet of gas pushes rock left:"
+                        rock = try_left
+                    else 
+                        puts "Jet of gas pushes rock left, but nothing happens:"
+                    end
+                else
+                    try_right = rock.apply(Point2d.new(1, 0))
+                    if @fill.intersection(try_right.points).empty?
+                        puts "Jet of gas pushes rock right:"
+                        rock = try_right
+                    else
+                        puts "Jet of gas pushes rock right, but nothing happens:"
+                    end
+                end
+            else
+                try_down = rock.apply(Point2d.new(0, -1))
+                if @fill.intersection(try_down.points).empty?
+                    puts "Rock falls 1 unit:"
+                    rock = try_down
+                else
+                    puts "Rock falls 1 unit, causing it to come to rest:"
+                    @fill += rock.points
+                    break
+                end
+            end
             step += 1
         end
     end
