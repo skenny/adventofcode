@@ -22,13 +22,13 @@ end
 
 class RockGenerator
     @@rock_shapes = {
-        :horizontal_line => "@@@@",
-        :plus => ".@.\n@@@\n.@.",
-        :ell => "..@\n..@\n@@@",
-        :vertical_line => "@\n@\n@\n@",
-        :block => "@@\n@@"
+        :hline => [Point.new(0,0), Point.new(1,0), Point.new(2,0), Point.new(3,0)],
+        :plus  => [Point.new(1,2), Point.new(0,1), Point.new(1,1), Point.new(2,1), Point.new(1,0)],
+        :ell   => [Point.new(2,2), Point.new(2,1), Point.new(0,0), Point.new(1,0), Point.new(2,0)],
+        :vline => [Point.new(0,3), Point.new(0,2), Point.new(0,1), Point.new(0,0)],
+        :block => [Point.new(0,1), Point.new(1,1), Point.new(0,0), Point.new(1,0)]
     }
-    @@rock_order = [:horizontal_line, :plus, :ell, :vertical_line, :block]
+    @@rock_order = [:hline, :plus, :ell, :vline, :block]
 
     def initialize
         @rock_index = 0
@@ -37,22 +37,7 @@ class RockGenerator
     def next_rock
         next_index = @rock_index % @@rock_shapes.length
         @rock_index += 1
-
-        shape_str = @@rock_shapes[@@rock_order[next_index]]
-        shape_arr = shape_str.split("\n").map(&:chars)
-
-        height = shape_arr.length
-        width = shape_arr[0].length
-
-        points = []
-        (0...height).each do |y|
-            (0...width).each do |x|
-                # [0,0] is bottom left
-                points.push(Point.new(x, height - y - 1)) if shape_arr[y][x] == "@"
-            end
-        end
-
-        Rock.new(points)
+        Rock.new(@@rock_shapes[@@rock_order[next_index]])
     end
 end
 
