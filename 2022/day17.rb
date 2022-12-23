@@ -43,7 +43,6 @@ end
 
 class Chamber 
     @@chamber_width = 7
-    @@debug = false
 
     def initialize(jet_pattern)
         @jet_pattern = jet_pattern
@@ -71,42 +70,33 @@ class Chamber
     end
 
     def play_rock(rock)
-        puts "A new rock begins falling:" if @@debug
         rock = rock.apply(Point.new(2, height + 4))
         step = 0
+        
         loop do
-            puts "new step, rock is at #{rock}" if @@debug
+            delta = Point.new(0,0)
             if step % 2 == 0
                 jet_direction = @jet_pattern[@jet_index]
                 @jet_index = (@jet_index + 1) % @jet_pattern.length
                 if jet_direction == "<"
-                    try_left = rock.apply(Point.new(-1, 0))
-                    if in_bounds(try_left) and @fill.intersection(try_left.points).empty?
-                        puts "Jet of gas pushes rock left:" if @@debug
-                        rock = try_left
-                    else 
-                        puts "Jet of gas pushes rock left, but nothing happens:" if @@debug
-                    end
+                    delta = Point.new(-1,0)
                 else
-                    try_right = rock.apply(Point.new(1, 0))
-                    if in_bounds(try_right) and @fill.intersection(try_right.points).empty?
-                        puts "Jet of gas pushes rock right:" if @@debug
-                        rock = try_right
-                    else
-                        puts "Jet of gas pushes rock right, but nothing happens:" if @@debug
-                    end
+                    delta = Point.new(1, 0)
                 end
             else
-                try_down = rock.apply(Point.new(0, -1))
-                if @fill.intersection(try_down.points).empty?
-                    puts "Rock falls 1 unit:" if @@debug
-                    rock = try_down
-                else
-                    puts "Rock falls 1 unit, causing it to come to rest:" if @@debug
+                delta = Point.new(0, -1)
+            end
+
+            try_move = rock.apply(delta)
+            if in_bounds(try_move) and @fill.intersection(try_move.points).empty?
+                rock = try_move
+            else
+                if delta.y == -1
                     @fill += rock.points
                     break
                 end
             end
+
             step += 1
         end
     end
