@@ -1,3 +1,5 @@
+require 'set'
+
 input = ARGF.read.strip
 
 Point = Struct.new(:x, :y) do
@@ -54,7 +56,9 @@ class Chamber
     def initialize(jet_pattern)
         @jet_pattern = jet_pattern
         @jet_index = 0
-        @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) } # fill the bottom row [x,0]
+
+        # fill the bottom row [x,0]; using a set is way faster than enumerable/array
+        @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) }.to_set
     end
 
     def draw
@@ -77,17 +81,17 @@ class Chamber
     end
 
     def play_rock(rock)
-        key = [rock.count, @jet_index]
-        if @@seen_rock_jets.has_key?(key)
-            puts "pattern? rock index is #{key[0]}, jet index is #{key[1]}"
-        end
-        @@seen_rock_jets[key] = true
+        # key = [rock.count, @jet_index]
+        # if @@seen_rock_jets.has_key?(key)
+        #     puts "pattern? rock index is #{key[0]}, jet index is #{key[1]}"
+        # end
+        # @@seen_rock_jets[key] = true
 
         rock = rock.apply(Point.new(2, height + 4))
         step = 0
         
         loop do
-            delta = Point.new(0,0)
+            delta = nil
             if step % 2 == 0
                 jet_direction = @jet_pattern[@jet_index]
                 @jet_index = (@jet_index + 1) % @jet_pattern.length
@@ -97,11 +101,11 @@ class Chamber
             end
 
             try_move = rock.apply(delta)
-            if in_bounds(try_move) and @fill.intersection(try_move.points).empty?
+            if in_bounds(try_move) and @fill.intersection(try_move.points.to_set).empty?
                 rock = try_move
             else
                 if delta.y == -1
-                    @fill.concat(rock.points)
+                    @fill += rock.points.to_set
                     break
                 end
             end
@@ -116,7 +120,6 @@ rock_generator = RockGenerator.new
 
 puts Time.new.to_s
 2022.times do |i|
-    puts "Rock ##{i}..." if i % 500 == 0
     chamber.play_rock(rock_generator.next_rock)
     #chamber.draw
 end
