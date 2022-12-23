@@ -56,7 +56,7 @@ class RockGenerator
     end
 end
 
-class Chamber
+class Chamber 
     @@chamber_width = 7
     @@debug = false
 
@@ -67,8 +67,14 @@ class Chamber
     end
 
     def draw
-        # TODO draw active and settled rocks
-        puts "+" + ("-" * @@chamber_width) + "+"
+        (1..height).each do |y|
+            row = ""
+            (0...@@chamber_width).each do |x|
+                row += @fill.include?(Point.new(x, height - y + 1)) ? "#" : "."
+            end
+            puts "|#{row}|"
+        end
+        puts "+" + ("-" * @@chamber_width) + "+\n\n"
     end
 
     def height
@@ -76,7 +82,7 @@ class Chamber
     end
 
     def in_bounds(rock)
-        rock.points.all? { |point| point.x > 0 and point.x < @@chamber_width}
+        rock.points.all? { |point| point.x >= 0 and point.x < @@chamber_width}
     end
 
     def play_rock(rock)
@@ -127,5 +133,6 @@ rock_generator = RockGenerator.new
 2022.times do |i|
     puts "Rock ##{i}..." if i % 500 == 0
     chamber.play_rock(rock_generator.next_rock)
+    #chamber.draw
 end
 puts chamber.height
