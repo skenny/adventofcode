@@ -44,7 +44,8 @@ end
 class Chamber 
     @@jet_directions = {
         "<" => Point.new(-1,0),
-        ">" => Point.new(1,0)
+        ">" => Point.new(1,0),
+        "v" => Point.new(0,-1)
     }
     @@chamber_width = 7
 
@@ -84,7 +85,7 @@ class Chamber
                 @jet_index = (@jet_index + 1) % @jet_pattern.length
                 delta = @@jet_directions[jet_direction]
             else
-                delta = Point.new(0, -1)
+                delta = @@jet_directions["v"]
             end
 
             try_move = rock.apply(delta)
@@ -92,7 +93,7 @@ class Chamber
                 rock = try_move
             else
                 if delta.y == -1
-                    @fill += rock.points
+                    @fill.concat(rock.points)
                     break
                 end
             end
