@@ -68,10 +68,6 @@ class Chamber
         @fill.map { |point| point.y }.max || 0
     end
 
-    def in_bounds(rock)
-        rock.points.all? { |point| point.x >= 0 and point.x < @@chamber_width}
-    end
-
     def top_contour(num_rows)
         tops = []
         current_height = height
@@ -141,8 +137,10 @@ class Chamber
 
             delta = @@directions[direction]
             try_move = rock.apply(delta)
+            in_bounds = try_move.points.all? { |point| point.x >= 0 and point.x < @@chamber_width}
+            no_fill_collision = @fill.intersection(try_move.points.to_set).empty?
 
-            if in_bounds(try_move) and @fill.intersection(try_move.points.to_set).empty?
+            if in_bounds and no_fill_collision
                 rock = try_move
             else
                 if delta.y == -1
