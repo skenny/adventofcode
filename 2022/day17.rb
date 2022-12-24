@@ -43,7 +43,6 @@ class Chamber
         @jet_index = 0
         @rock_index = 0
         @states = {}
-        @rocks_added = []
 
         # fill the bottom row [x,0]; using a set is way faster than enumerable/array
         @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) }.to_set
@@ -80,6 +79,7 @@ class Chamber
             (0...[height, num_rows].min).each do |y|
                 actual_y = current_height - y
                 if not tops[x] and @fill.include?(Point.new(x, actual_y))
+                    # we want the column height relative to tower height
                     tops[x] = y
                 end
             end
@@ -100,16 +100,16 @@ class Chamber
                 if @states.has_key?(state)
                     puts "repeat; rock #{@rock_index}, jet #{@jet_index}, height #{height} rocks dropped #{rock_count}, top contour #{top_contour}}"
                     cycle_found = true
-                    
+
                     prev_rock_count, prev_height = @states[state]
                     current_height = height
-                    
+
                     cycle_length = rock_count - prev_rock_count
                     cycle_height = current_height - prev_height
                     rocks_remaining = num_rocks - rock_count
                     cycles_remaining = rocks_remaining / cycle_length
                     height_gain = cycles_remaining * cycle_height
-                    rock_count += cycles_remaining * cycle_length + 1
+                    rock_count += cycles_remaining * cycle_length + 1   # I don't know why +1 is necessary :/
 
                     puts "\tcycle length #{cycle_length}, cycle height #{cycle_height}, rocks_remaining #{rocks_remaining}, cycles_remaining #{cycles_remaining}, height_gain #{height_gain}"
                     puts "\trock count is now #{rock_count}"
