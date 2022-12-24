@@ -48,24 +48,23 @@ class Chamber
         @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) }.to_set
     end
 
+    def height
+        @fill.map { |point| point.y }.max || 0
+    end
+
     def rasterize(num_rows = 0)
-        actual_height = height
-        stop_at = num_rows == 0 ? actual_height : num_rows
-        stop_at = [stop_at, actual_height].min
+        current_height = height
+        stop_at = num_rows == 0 ? current_height : [num_rows, current_height].min
         rows = []
         (1..stop_at).each do |y|
             row = ""
             (0...@@chamber_width).each do |x|
-                row += @fill.include?(Point.new(x, height - y + 1)) ? "#" : "."
+                row += @fill.include?(Point.new(x, current_height - y + 1)) ? "#" : "."
             end
             rows.push("|#{row}|")
         end
         rows.push("+" + ("-" * @@chamber_width) + "+")
         rows
-    end
-
-    def height
-        @fill.map { |point| point.y }.max || 0
     end
 
     def top_contour(num_rows)
@@ -91,15 +90,14 @@ class Chamber
         cycle_found = false
         while rock_count <= num_rocks do
             if not cycle_found
+                current_height = height
                 top_contour = top_contour(50)
                 state = [@rock_index, @jet_index, top_contour]
                 if @states.has_key?(state)
-                    puts "repeat; rock #{@rock_index}, jet #{@jet_index}, height #{height} rocks dropped #{rock_count}, top contour #{top_contour}}"
+                    puts "repeat; rock #{@rock_index}, jet #{@jet_index}, height #{current_height} rocks dropped #{rock_count}, top contour #{top_contour}}"
                     cycle_found = true
 
                     prev_rock_count, prev_height = @states[state]
-                    current_height = height
-
                     cycle_length = rock_count - prev_rock_count
                     cycle_height = current_height - prev_height
                     rocks_remaining = num_rocks - rock_count
@@ -115,7 +113,7 @@ class Chamber
                         @fill.add(Point.new(x, current_height + height_gain - offset_height))
                     end
                 else
-                    @states[state] = [rock_count, height]
+                    @states[state] = [rock_count, current_height]
                 end
             end
             play_rock
