@@ -12,13 +12,13 @@ Point = Struct.new(:x, :y) do
     end
 end
 
-Rock = Struct.new(:count, :points) do
+Rock = Struct.new(:points) do
     def apply(delta)
-        Rock.new(count, points.map { |p| p.plus(delta) })
+        Rock.new(points.map { |p| p.plus(delta) })
     end
 
     def to_s
-        "#{count} " + points.map(&:to_s).join(", ")
+        points.map(&:to_s).join(", ")
     end
 end
 
@@ -42,8 +42,8 @@ class Chamber
         @jet_pattern = jet_pattern
         @jet_index = 0
         @rock_index = 0
-        @rock_counter = 0
-        @@seen_states = {}
+        @states = {}
+        @rocks_added = []
 
         # fill the bottom row [x,0]; using a set is way faster than enumerable/array
         @fill = (0...@@chamber_width).map { |x| Point.new(x, 0) }.to_set
@@ -73,15 +73,62 @@ class Chamber
         rock.points.all? { |point| point.x >= 0 and point.x < @@chamber_width}
     end
 
-    def play_rock
-        this_rock_index = @rock_index
-        state = [this_rock_index, @jet_index]
-        if @@seen_states.has_key?(state)
-            puts "rock #{this_rock_index}, jet #{@jet_index}, height #{height}, rocks dropped #{@rock_counter}, top #{rasterize(10).join}"
+    def top_contour(num_rows)
+        tops = []
+        current_height = height
+        (0...@@chamber_width).each do |x|
+            (0...[height, num_rows].min).each do |y|
+                actual_y = current_height - y
+                if not tops[x] and @fill.include?(Point.new(x, actual_y))
+                    tops[x] = y
+                end
+            end
+            if not tops[x]
+                tops[x] = -1
+            end
         end
-        @@seen_states[state] = true
+        tops
+    end
 
-        rock = Rock.new(@this_rock_index, @@rock_shapes[@@rock_order[@rock_index]]).apply(Point.new(2, height + 4))
+    def simulate_rocks(num_rocks)
+        rock_count = 0
+        cycle_found = false
+        while rock_count <= num_rocks do
+            if not cycle_found
+                top_contour = top_contour(50)
+                state = [@rock_index, @jet_index, top_contour]
+                if @states.has_key?(state)
+                    puts "repeat; rock #{@rock_index}, jet #{@jet_index}, height #{height} rocks dropped #{rock_count}, top contour #{top_contour}}"
+                    cycle_found = true
+                    
+                    prev_rock_count, prev_height = @states[state]
+                    current_height = height
+                    
+                    cycle_length = rock_count - prev_rock_count
+                    cycle_height = current_height - prev_height
+                    rocks_remaining = num_rocks - rock_count
+                    cycles_remaining = rocks_remaining / cycle_length
+                    height_gain = cycles_remaining * cycle_height
+                    rock_count += cycles_remaining * cycle_length + 1
+
+                    puts "\tcycle length #{cycle_length}, cycle height #{cycle_height}, rocks_remaining #{rocks_remaining}, cycles_remaining #{cycles_remaining}, height_gain #{height_gain}"
+                    puts "\trock count is now #{rock_count}"
+
+                    # re-apply the top contour at the new height
+                    top_contour.each_with_index do |offset_height, x|
+                        @fill.add(Point.new(x, current_height + height_gain - offset_height))
+                    end
+                else
+                    @states[state] = [rock_count, height]
+                end
+            end
+            play_rock
+            rock_count += 1
+        end
+    end
+
+    def play_rock
+        rock = Rock.new(@@rock_shapes[@@rock_order[@rock_index]]).apply(Point.new(2, height + 4))
         @rock_index = (@rock_index + 1) % @@rock_shapes.length
 
         step = 0
@@ -106,22 +153,20 @@ class Chamber
 
             step += 1
         end
-        
-        @rock_counter += 1
     end
 end
 
 def part1(input)
     chamber = Chamber.new(input)
-    2022.times { chamber.play_rock }
+    chamber.simulate_rocks(2022)
     puts chamber.height
 end
 
 def part2(input)
     chamber = Chamber.new(input)
-    1_000_000_000_000.times { chamber.play_rock }
+    chamber.simulate_rocks(1_000_000_000_000)
     puts chamber.height
 end
 
-#part1(input)
+part1(input)
 part2(input)
