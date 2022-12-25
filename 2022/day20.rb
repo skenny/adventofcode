@@ -101,9 +101,6 @@ end
 def part2(numbers)
     grove_coords = find_grove_coordinates(numbers, 811589153, 10)
     puts "#{grove_coords} -> #{grove_coords.sum}"
-
-    # guesses:
-    # 13802696725071 is too high
 end
 
 numbers = ARGF.read.split("\n").map(&:to_i)
