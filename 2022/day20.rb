@@ -26,6 +26,7 @@ def create_nodes(numbers)
 end
 
 def mix(nodes, iterations=1)
+    node_count = nodes.size
     node_order = nodes.map do |node|
         [node.num, node]
     end
@@ -33,7 +34,7 @@ def mix(nodes, iterations=1)
     # puts "before"
     # puts nodes.map(&:to_s)
 
-    iterations.times do
+    iterations.times do |i|
         node_order.each do |num, node|
             if num != 0
                 # detach
@@ -43,7 +44,8 @@ def mix(nodes, iterations=1)
                 # find target node
                 direction = node.sign
                 target = node
-                node.num.abs.times do
+                steps = node.num.abs % node_count # <-- THE BUG IS HERE ***
+                steps.times do
                     target = direction == -1 ? target.prev : target.next
                 end
 
@@ -65,10 +67,10 @@ def mix(nodes, iterations=1)
                 node.next = new_next
             end
         end
-    end
 
-    # puts "after"
-    # puts nodes.map(&:to_s)
+        puts "after #{i+1} round(s) of mixing:"
+        puts nodes.map(&:to_s)
+    end
 end
 
 def find_grove_coordinates(numbers, decryption_key=1, mix_iterations=1)
@@ -88,13 +90,18 @@ def find_grove_coordinates(numbers, decryption_key=1, mix_iterations=1)
 end
 
 def part1(numbers)
-    puts find_grove_coordinates(numbers).sum
+    grove_coords = find_grove_coordinates(numbers)
+    puts "#{grove_coords} -> #{grove_coords.sum}"
 end
 
 def part2(numbers)
-    puts find_grove_coordinates(numbers, 811589153, 10).sum
+    grove_coords = find_grove_coordinates(numbers, 811589153, 10)
+    puts "#{grove_coords} -> #{grove_coords.sum}"
+
+    # guesses:
+    # 13802696725071 is too high
 end
 
 numbers = ARGF.read.split("\n").map(&:to_i)
 part1(numbers)
-#part2(numbers)
+part2(numbers)
