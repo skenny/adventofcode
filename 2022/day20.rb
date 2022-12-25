@@ -27,6 +27,7 @@ end
 
 def mix(nodes, iterations=1)
     node_count = nodes.size
+
     node_order = nodes.map do |node|
         [node.num, node]
     end
@@ -44,7 +45,10 @@ def mix(nodes, iterations=1)
                 # find target node
                 direction = node.sign
                 target = node
-                steps = node.num.abs % node_count # <-- THE BUG IS HERE ***
+
+                # -1 so that if we have a non-zero node num equal to the number of nodes we still move it
+                steps = node.num.abs % (node_count - 1)
+                
                 steps.times do
                     target = direction == -1 ? target.prev : target.next
                 end
@@ -68,8 +72,8 @@ def mix(nodes, iterations=1)
             end
         end
 
-        puts "after #{i+1} round(s) of mixing:"
-        puts nodes.map(&:to_s)
+        # puts "after #{i+1} round(s) of mixing:"
+        # puts nodes.map(&:to_s)
     end
 end
 
