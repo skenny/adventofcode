@@ -28,40 +28,42 @@ end
 def part1(input)
     nodes = parse_input(input)
 
+    node_order = nodes.map do |node|
+        [node.num, node]
+    end
+
     # puts "before"
     # puts nodes.map(&:to_s)
 
-    input.each do |num|
+    node_order.each do |num, node|
         if num != 0
-            nodes.select { |node| node.num == num }.each do |node|
-                # detach
-                node.prev.next = node.next
-                node.next.prev = node.prev
+            # detach
+            node.prev.next = node.next
+            node.next.prev = node.prev
 
-                # find target node
-                direction = node.sign
-                target = node
-                node.num.abs.times do
-                    target = direction == -1 ? target.prev : target.next
-                end
-
-                # from target, determine new next/prev
-                if direction == -1
-                    new_next = target
-                    new_prev = new_next.prev
-                else
-                    new_prev = target
-                    new_next = new_prev.next
-                end
-
-                # puts "#{node.num} moves between #{new_prev.num} and #{new_next.num}"
-
-                # re-attach
-                new_prev.next = node
-                new_next.prev = node
-                node.prev = new_prev
-                node.next = new_next
+            # find target node
+            direction = node.sign
+            target = node
+            node.num.abs.times do
+                target = direction == -1 ? target.prev : target.next
             end
+
+            # from target, determine new next/prev
+            if direction == -1
+                new_next = target
+                new_prev = new_next.prev
+            else
+                new_prev = target
+                new_next = new_prev.next
+            end
+
+            # puts "#{node.num} moves between #{new_prev.num} and #{new_next.num}"
+
+            # re-attach
+            new_prev.next = node
+            new_next.prev = node
+            node.prev = new_prev
+            node.next = new_next
         end
     end
 
