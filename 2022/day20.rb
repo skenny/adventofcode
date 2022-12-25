@@ -71,29 +71,28 @@ def mix(nodes, iterations=1)
     # puts nodes.map(&:to_s)
 end
 
-def find_grove_coordinates(nodes)
-    start = nodes.find { |node| node.num == 0 }
+def find_grove_coordinates(numbers, decryption_key=1, mix_iterations=1)
+    nodes = create_nodes(numbers.map { |n| n * decryption_key })
+    mix(nodes, mix_iterations)
+
+    # TODO prolly faster to build an array and then use index access
+    current = nodes.find { |node| node.num == 0 }
     grove_coordinates = []
     3001.times do |i|
         if i > 0 and i % 1000 == 0
-            grove_coordinates.push(start.num)
+            grove_coordinates.push(current.num)
         end
-        start = start.next
+        current = current.next
     end
     grove_coordinates
 end
 
 def part1(numbers)
-    nodes = create_nodes(numbers)
-    mix(nodes)
-    puts find_grove_coordinates(nodes).sum
+    puts find_grove_coordinates(numbers).sum
 end
 
 def part2(numbers)
-    decryption_key = 811589153
-    nodes = create_nodes(numbers.map { |n| n * decryption_key })
-    mix(nodes, 10)
-    puts find_grove_coordinates(nodes).sum
+    puts find_grove_coordinates(numbers, 811589153, 10).sum
 end
 
 numbers = ARGF.read.split("\n").map(&:to_i)
