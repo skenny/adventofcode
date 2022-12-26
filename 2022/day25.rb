@@ -15,8 +15,21 @@ def decode(snafu)
 end
 
 def encode(number)
-    snafu_places = []
-
+    snafu = []
+    while number > 0
+        remainder = number % 5
+        if remainder < 3
+            snafu.unshift(remainder.to_s)
+        elsif remainder == 3
+            snafu.unshift("=")
+            number += 5
+        elsif remainder == 4
+            snafu.unshift("-")
+            number += 5
+        end
+        number /= 5
+    end
+    snafu.join
 end
 
 def test_encoding()
@@ -39,7 +52,7 @@ def test_encoding()
     puts "=== Test encoding ==="
     test_cases.each do |snafu, expected_number|
         number = decode(snafu)
-        puts "#{snafu} -> #{number}? #{expected_number == number}"
+        puts "#{snafu} -> #{expected_number}? #{expected_number == number} got #{number}"
     end
     puts "\n"
 end
@@ -66,12 +79,13 @@ def test_decoding()
     puts "=== Test decoding ==="
     test_cases.each do |number, expected_snafu|
         snafu = encode(number)
-        puts "#{number} -> #{snafu}? #{expected_snafu == snafu}"
+        puts "#{number} -> #{expected_snafu}? #{expected_snafu == snafu} got #{snafu}"
     end
     puts "\n"
 end
 
-test_encoding
-test_decoding
+#test_encoding
+#test_decoding
 
 input = ARGF.read.split("\n")
+puts encode(input.map { |snafu| decode(snafu) }.sum)
