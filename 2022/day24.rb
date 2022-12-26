@@ -89,7 +89,7 @@ def search(grid, start, target)
         grid.step_blizzards
         blizzard_state = grid.blizzards.map(&:point).to_set
         minute += 1
-        next_to_check = Set.new
+        next_moves = Set.new
         to_check.each do |current|
             x, y = current
             [current, [x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].each do |next_move|
@@ -97,11 +97,11 @@ def search(grid, start, target)
                     return minute
                 end
                 if (grid.player_in_bounds(next_move)) and not blizzard_state.include?(next_move)
-                    next_to_check.add(next_move)
+                    next_moves.add(next_move)
                 end
             end
         end
-        to_check = next_to_check
+        to_check = next_moves
     end
 end
 
