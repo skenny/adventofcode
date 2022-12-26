@@ -74,6 +74,10 @@ class Grid
         p[0] > 0 and p[0] < @width - 1 and p[1] > 0 and p[1] < @height - 1
     end
 
+    def player_in_bounds(p)
+        p == @entrance or p == @exit or in_bounds(p)
+    end
+
 end
 
 def search(grid, start, target)
@@ -82,28 +86,20 @@ def search(grid, start, target)
     minute = 0
 
     while true
-        puts "Minute #{minute}, checking #{to_check.size}..."
-
         grid.step_blizzards
         next_blizzard_state = grid.blizzards.map(&:point).to_set
-
         next_to_check = Set.new
         to_check.each do |current|
-            if current == target
-                return minute
-            end
-
             x, y = current
-            possible_next = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].to_set - next_blizzard_state
-            available_next = possible_next.filter { |n| n == target or grid.in_bounds(n) }.to_set
-
-            if available_next.empty?
-                next_to_check.add(current)
-            else
-                next_to_check += available_next
+            [current, [x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].each do |next_move|
+                if next_move == target
+                    return minute + 1
+                end
+                if (grid.player_in_bounds(next_move)) and not next_blizzard_state.include?(next_move)
+                    next_to_check.add(next_move)
+                end
             end
         end
-
         to_check = next_to_check
         minute += 1
     end
@@ -111,10 +107,18 @@ end
 
 def part1(input)
     grid = Grid.new(input)
-    puts "Starting at #{Time.new}..."
     puts search(grid, grid.entrance, grid.exit)
-    puts "Finished at #{Time.new}"
+end
+
+def part2(input)
+    grid = Grid.new(input)
+    times = []
+    times.push(search(grid, grid.entrance, grid.exit))
+    times.push(search(grid, grid.exit, grid.entrance))
+    times.push(search(grid, grid.entrance, grid.exit))
+    puts "#{times} -> #{times.sum}"
 end
 
 input = ARGF.read.split("\n")
 part1(input)
+part2(input)
