@@ -85,19 +85,22 @@ def search(grid, start, target)
         puts "Minute #{minute}, checking #{to_check.size}..."
 
         grid.step_blizzards
-        next_blizzard_state = grid.blizzards.map(&:point)
+        next_blizzard_state = grid.blizzards.map(&:point).to_set
 
         next_to_check = Set.new
         to_check.each do |current|
             if current == target
                 return minute
             end
+
             x, y = current
-            possible_next = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].select { |neighbour| grid.in_bounds(neighbour) and not next_blizzard_state.include?(neighbour) }
-            if possible_next.empty?
+            possible_next = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].to_set - next_blizzard_state
+            available_next = possible_next.filter { |n| n == target or grid.in_bounds(n) }.to_set
+
+            if available_next.empty?
                 next_to_check.add(current)
             else
-                next_to_check += possible_next
+                next_to_check += available_next
             end
         end
 
