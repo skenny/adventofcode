@@ -49,7 +49,13 @@ end
 
 def part1(input)
     blueprints = parse_input(input)
-    quality_levels = blueprints.map { |blueprint| blueprint.id * crack_geodes(blueprint, [State.new(1, 0, 0, 0, 0, 1, 0, 0, 0)]) }
+    quality_levels = blueprints.map do |blueprint|
+        start_time = Time.new
+        puts "Testing blueprint #{blueprint.id}..."
+        max_geodes_cracked = crack_geodes(blueprint, [State.new(1, 0, 0, 0, 0, 1, 0, 0, 0)])
+        puts "\tcracked #{max_geode_cracked} in #{Time.new.to_i - max_geodes_cracked.to_i}s"
+        blueprint.id * max_geodes_cracked
+    end
     puts quality_levels.sum
 end
 
