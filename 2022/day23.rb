@@ -58,25 +58,25 @@ directions = [Point.new(0, -1), Point.new(0, 1), Point.new(-1, 0), Point.new(1, 
         directions.each do |direction|
             if direction.y == -1    # north
                 if [nw, n, ne].none? { |p| elves.include?(p) }
-                    puts "elf #{elf_i} at #{point} proposes going north to #{n}"
+                    #puts "elf #{elf_i} at #{point} proposes going north to #{n}"
                     proposed_moves.push([elf_i, n]) 
                     break
                 end
             elsif direction.y == 1  # south
                 if [sw, s, se].none? { |p| elves.include?(p) }
-                    puts "elf #{elf_i} at #{point} proposes going south to #{s}"
+                    #puts "elf #{elf_i} at #{point} proposes going south to #{s}"
                     proposed_moves.push([elf_i, s])
                     break
                 end
             elsif direction.x == -1 # west
                 if [nw, w, sw].none? { |p| elves.include?(p) }
-                    puts "elf #{elf_i} at #{point} proposes going west to #{w}"
+                    #puts "elf #{elf_i} at #{point} proposes going west to #{w}"
                     proposed_moves.push([elf_i, w])
                     break
                 end
             elsif direction.x == 1  # east
                 if [ne, e, se].none? { |p| elves.include?(p) }
-                    puts "elf #{elf_i} at #{point} proposes going east to #{e}"
+                    #puts "elf #{elf_i} at #{point} proposes going east to #{e}"
                     proposed_moves.push([elf_i, e])
                     break
                 end
@@ -94,4 +94,17 @@ directions = [Point.new(0, -1), Point.new(0, 1), Point.new(-1, 0), Point.new(1, 
     directions.rotate!(directions.size + 1)
 end
 
-puts elves.to_s
+min_x, max_x = elves.map(&:x).minmax
+min_y, max_y = elves.map(&:y).minmax
+
+raster = ""
+(min_y..max_y).each do |y|
+    (min_x..max_x).each do |x|
+        p = Point.new(x,y)
+        raster += elves.include?(p) ? "#" : "."
+    end
+    raster += "\n"
+end
+puts raster
+
+puts (min_x..max_x).size * (min_y..max_y).size - elves.size
