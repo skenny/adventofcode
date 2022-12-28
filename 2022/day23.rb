@@ -34,13 +34,14 @@ def play_rounds(elves, round_limit=nil)
     rounds_played = 0
 
     loop do
-        puts "playing round #{rounds_played + 1}..."
+        # quick elf position lookup
+        elf_lookup = Hash[elves.map { |elf| [elf, true] }]
 
         # first half, for each elf consider all neighbours; if none, the elf doesn't participate in the round
         participating_elves = {}
         elves.each_with_index do |point, i|
             neighbours = point.neighbours
-            participating_elves[i] = neighbours if neighbours.any? { |p| elves.include?(p) }
+            participating_elves[i] = neighbours if neighbours.any? { |p| elf_lookup.has_key?(p) }
         end
 
         # break if no elves moved
@@ -52,22 +53,22 @@ def play_rounds(elves, round_limit=nil)
             nw, n, ne, w, e, sw, s, se = neighbours
             directions.each do |direction|
                 if direction.y == -1    # north
-                    if [nw, n, ne].none? { |p| elves.include?(p) }
+                    if [nw, n, ne].none? { |p| elf_lookup.has_key?(p) }
                         proposed_moves.push([elf_i, n]) 
                         break
                     end
                 elsif direction.y == 1  # south
-                    if [sw, s, se].none? { |p| elves.include?(p) }
+                    if [sw, s, se].none? { |p| elf_lookup.has_key?(p) }
                         proposed_moves.push([elf_i, s])
                         break
                     end
                 elsif direction.x == -1 # west
-                    if [nw, w, sw].none? { |p| elves.include?(p) }
+                    if [nw, w, sw].none? { |p| elf_lookup.has_key?(p) }
                         proposed_moves.push([elf_i, w])
                         break
                     end
                 elsif direction.x == 1  # east
-                    if [ne, e, se].none? { |p| elves.include?(p) }
+                    if [ne, e, se].none? { |p| elf_lookup.has_key?(p) }
                         proposed_moves.push([elf_i, e])
                         break
                     end
@@ -76,8 +77,10 @@ def play_rounds(elves, round_limit=nil)
         end
 
         # apply unique position moves
-        proposed_move_points = proposed_moves.map { |elf_i, point| point }
-        proposed_moves.each { |elf_i, point| elves[elf_i] = point if proposed_move_points.count(point) == 1 }
+        proposed_moves
+            .group_by { |elf_i, point| point }
+            .select { |point, referenced_moves| referenced_moves.size == 1 }
+            .each { |point, unique_moves| elves[unique_moves[0][0]] = point }
 
         # rotate directions backwards one step (first -> last, second -> first, etc)
         directions.rotate!(directions.size + 1)
@@ -131,5 +134,5 @@ end
 
 input = ARGF.read.split("\n")
 
-#part1(input)
+part1(input)
 part2(input)
