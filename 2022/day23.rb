@@ -1,3 +1,5 @@
+require 'set'
+
 Point = Struct.new(:x, :y) do
 
     def neighbours
@@ -25,45 +27,44 @@ Point = Struct.new(:x, :y) do
 end
 
 def play_rounds(elves, round_limit=nil)
-    directions = [Point.new(0, -1), Point.new(0, 1), Point.new(-1, 0), Point.new(1, 0)]
+    move_options = [Point.new(0, -1), Point.new(0, 1), Point.new(-1, 0), Point.new(1, 0)]
     rounds_played = 0
 
     loop do
-        # quick elf position lookup
-        elf_lookup = Hash[elves.map { |elf| [elf, true] }]
-
         # first half, for each elf consider all neighbours; if none, the elf doesn't participate in the round
-        participating_elves = {}
-        elves.each_with_index do |point, i|
-            neighbours = point.neighbours
-            participating_elves[i] = neighbours if neighbours.any? { |p| elf_lookup.has_key?(p) }
+        participating_elves = elves.filter_map do |elf|
+            neighbours = elf.neighbours
+            if neighbours.any? { |p| elves.include?(p) }
+                [elf, neighbours]
+            else
+                false
+            end
         end
-
         break if participating_elves.empty?
 
         # second half, each elf with neighbours proposes a move based on the current direction
         proposed_moves = []
-        participating_elves.each do |elf_i, neighbours|
+        participating_elves.each do |elf, neighbours|
             nw, n, ne, w, e, sw, s, se = neighbours
-            directions.each do |direction|
-                if direction.y == -1    # north
-                    if [nw, n, ne].none? { |p| elf_lookup.has_key?(p) }
-                        proposed_moves.push([elf_i, n]) 
+            move_options.each do |move|
+                if move.y == -1    # north
+                    if [nw, n, ne].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf, n]) 
                         break
                     end
-                elsif direction.y == 1  # south
-                    if [sw, s, se].none? { |p| elf_lookup.has_key?(p) }
-                        proposed_moves.push([elf_i, s])
+                elsif move.y == 1  # south
+                    if [sw, s, se].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf, s])
                         break
                     end
-                elsif direction.x == -1 # west
-                    if [nw, w, sw].none? { |p| elf_lookup.has_key?(p) }
-                        proposed_moves.push([elf_i, w])
+                elsif move.x == -1 # west
+                    if [nw, w, sw].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf, w])
                         break
                     end
-                elsif direction.x == 1  # east
-                    if [ne, e, se].none? { |p| elf_lookup.has_key?(p) }
-                        proposed_moves.push([elf_i, e])
+                elsif move.x == 1  # east
+                    if [ne, e, se].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf, e])
                         break
                     end
                 end
@@ -72,12 +73,16 @@ def play_rounds(elves, round_limit=nil)
 
         # apply unique position moves
         proposed_moves
-            .group_by { |elf_i, point| point }
-            .select { |point, referenced_moves| referenced_moves.size == 1 }
-            .each { |point, unique_moves| elves[unique_moves[0][0]] = point }
+            .group_by { |elf, dest| dest }
+            .select { |dest, moves| moves.size == 1 }
+            .each do |dest, moves|
+                from, to = moves.first
+                elves.delete(from)
+                elves.add(to)
+            end
 
-        # rotate directions backwards one step (first -> last, second -> first, etc)
-        directions.rotate!(directions.size + 1)
+        # rotate move options (first -> last, second -> first, etc)
+        move_options.push(move_options.shift)
 
         rounds_played += 1
         break if round_limit and round_limit == rounds_played
@@ -101,10 +106,10 @@ def rasterize(elves)
 end
 
 def parse_input(input)
-    elves = []
+    elves = Set.new
     input.each_with_index do |row, y|
         row.chars.each_with_index do |contents, x|
-            elves.push(Point.new(x, y)) if contents == '#'
+            elves.add(Point.new(x, y)) if contents == '#'
         end
     end
     elves
