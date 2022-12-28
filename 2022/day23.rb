@@ -2,7 +2,6 @@ Point = Struct.new(:x, :y) do
 
     def neighbours
         points = []
-
         # nw, n, ne, w, e, sw, s, se
         [-1, 0, 1].each do |n_y|
             [-1, 0, 1].each do |n_x|
