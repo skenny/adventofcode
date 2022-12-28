@@ -25,14 +25,13 @@ def crack_geodes(blueprint, time_allowed=24)
         # TODO keep track of current max, and abandon state paths once they can't beat it in time?
 
         states.each do |state|
-            #puts "\t#{state}"
+            next_minute = state.minute + 1
 
-            if state.minute > time_allowed
+            if next_minute > time_allowed
                 finished_paths.push(state)
                 next
             end
 
-            next_minute = state.minute + 1
             new_ore = state.ore + state.ore_robots
             new_clay = state.clay + state.clay_robots
             new_obsidian = state.obsidian + state.obsidian_robots
