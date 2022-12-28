@@ -1,3 +1,5 @@
+require 'set'
+
 Blueprint = Struct.new(:id, :ore_robot_ore_cost, :clay_robot_ore_cost, :obsidian_robot_ore_cost, :obsidian_robot_clay_cost, :geode_robot_ore_cost, :geode_robot_obsidian_cost)
 State = Struct.new(:minute, :ore, :clay, :obsidian, :geodes, :ore_robots, :clay_robots, :obsidian_robots, :geode_robots)
 
@@ -12,13 +14,13 @@ def parse_input(input)
 end
 
 def crack_geodes(blueprint, time_allowed=24)
-    states = [State.new(0, 0, 0, 0, 0, 1, 0, 0, 0)]
+    states = Set.new([State.new(0, 0, 0, 0, 0, 1, 0, 0, 0)])
     finished_paths = []
     minute = 0
 
     while not states.empty?
-        puts "Minute #{minute}, checking #{states.size} states..."
-        next_states = []
+        puts "\tMinute #{minute}, #{states.size} state(s)..."
+        next_states = Set.new
 
         # TODO keep track of current max, and abandon state paths once they can't beat it in time?
 
@@ -36,22 +38,22 @@ def crack_geodes(blueprint, time_allowed=24)
             new_obsidian = state.obsidian + state.obsidian_robots
             new_geodes = state.geodes + state.geode_robots
 
-            next_states.push(State.new(next_minute, new_ore, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots))
+            next_states.add(State.new(next_minute, new_ore, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots))
 
             # TODO possible optimizations:
             # - once we have a geode robot, only try the state where we buy another geode robot?
 
             if state.ore >= blueprint.ore_robot_ore_cost
-                next_states.push(State.new(next_minute, new_ore - blueprint.ore_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots + 1, state.clay_robots, state.obsidian_robots, state.geode_robots))
+                next_states.add(State.new(next_minute, new_ore - blueprint.ore_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots + 1, state.clay_robots, state.obsidian_robots, state.geode_robots))
             end
             if state.ore >= blueprint.clay_robot_ore_cost
-                next_states.push(State.new(next_minute, new_ore - blueprint.clay_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots + 1, state.obsidian_robots, state.geode_robots))
+                next_states.add(State.new(next_minute, new_ore - blueprint.clay_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots + 1, state.obsidian_robots, state.geode_robots))
             end
             if state.ore >= blueprint.obsidian_robot_ore_cost and state.clay >= blueprint.obsidian_robot_clay_cost
-                next_states.push(State.new(next_minute, new_ore - blueprint.obsidian_robot_ore_cost, new_clay - blueprint.obsidian_robot_clay_cost, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots + 1, state.geode_robots))
+                next_states.add(State.new(next_minute, new_ore - blueprint.obsidian_robot_ore_cost, new_clay - blueprint.obsidian_robot_clay_cost, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots + 1, state.geode_robots))
             end
             if state.ore >= blueprint.geode_robot_ore_cost and state.obsidian >= blueprint.geode_robot_obsidian_cost
-                next_states.push(State.new(next_minute, new_ore - blueprint.geode_robot_ore_cost, new_clay, new_obsidian - blueprint.geode_robot_obsidian_cost, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots + 1))
+                next_states.add(State.new(next_minute, new_ore - blueprint.geode_robot_ore_cost, new_clay, new_obsidian - blueprint.geode_robot_obsidian_cost, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots + 1))
             end
         end
 
