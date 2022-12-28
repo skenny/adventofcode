@@ -1,9 +1,5 @@
 Point = Struct.new(:x, :y) do
 
-    def plus(delta)
-        Point.new(x + delta.x, y + delta.y)
-    end
-
     def neighbours
         points = []
 
@@ -44,7 +40,6 @@ def play_rounds(elves, round_limit=nil)
             participating_elves[i] = neighbours if neighbours.any? { |p| elf_lookup.has_key?(p) }
         end
 
-        # break if no elves moved
         break if participating_elves.empty?
 
         # second half, each elf with neighbours proposes a move based on the current direction
@@ -86,8 +81,6 @@ def play_rounds(elves, round_limit=nil)
         directions.rotate!(directions.size + 1)
 
         rounds_played += 1
-
-        # stop if we've played the round limit
         break if round_limit and round_limit == rounds_played
     end
 
@@ -123,7 +116,7 @@ def part1(input)
     rounds_played = play_rounds(elves, 10)
     min_x, max_x = elves.map(&:x).minmax
     min_y, max_y = elves.map(&:y).minmax
-    puts (min_x..max_x).size * (min_y..max_y).size - elves.size
+    puts (max_x - min_x + 1) * (max_y - min_y + 1) - elves.size
 end
 
 def part2(input)
