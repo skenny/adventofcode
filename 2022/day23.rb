@@ -29,82 +29,107 @@ Point = Struct.new(:x, :y) do
 
 end
 
-input = ARGF.read.split("\n")
+def play_rounds(elves, round_limit=nil)
+    directions = [Point.new(0, -1), Point.new(0, 1), Point.new(-1, 0), Point.new(1, 0)]
+    rounds_played = 0
 
-elves = []
-input.each_with_index do |row, y|
-    row.chars.each_with_index do |contents, x|
-        elves.push(Point.new(x, y)) if contents == '#'
-    end
-end
+    loop do
+        puts "playing round #{rounds_played + 1}..."
 
-directions = [Point.new(0, -1), Point.new(0, 1), Point.new(-1, 0), Point.new(1, 0)]
+        # first half, for each elf consider all neighbours; if none, the elf doesn't participate in the round
+        participating_elves = {}
+        elves.each_with_index do |point, i|
+            neighbours = point.neighbours
+            participating_elves[i] = neighbours if neighbours.any? { |p| elves.include?(p) }
+        end
 
-10.times do |round_num|
-    puts "round #{round_num}"
+        # break if no elves moved
+        break if participating_elves.empty?
 
-    # first half, for each elf consider all neighbours; if none, the elf doesn't participate in the round
-    participating_elves = {}
-    elves.each_with_index do |point, i|
-        neighbours = point.neighbours
-        participating_elves[i] = [point, neighbours] if neighbours.any? { |p| elves.include?(p) }
-    end
-
-    # second half, each elf with neighbours proposes a move based on the current direction
-    proposed_moves = []
-    participating_elves.each do |elf_i, v|
-        point, neighbours = v
-        nw, n, ne, w, e, sw, s, se = neighbours
-        directions.each do |direction|
-            if direction.y == -1    # north
-                if [nw, n, ne].none? { |p| elves.include?(p) }
-                    #puts "elf #{elf_i} at #{point} proposes going north to #{n}"
-                    proposed_moves.push([elf_i, n]) 
-                    break
-                end
-            elsif direction.y == 1  # south
-                if [sw, s, se].none? { |p| elves.include?(p) }
-                    #puts "elf #{elf_i} at #{point} proposes going south to #{s}"
-                    proposed_moves.push([elf_i, s])
-                    break
-                end
-            elsif direction.x == -1 # west
-                if [nw, w, sw].none? { |p| elves.include?(p) }
-                    #puts "elf #{elf_i} at #{point} proposes going west to #{w}"
-                    proposed_moves.push([elf_i, w])
-                    break
-                end
-            elsif direction.x == 1  # east
-                if [ne, e, se].none? { |p| elves.include?(p) }
-                    #puts "elf #{elf_i} at #{point} proposes going east to #{e}"
-                    proposed_moves.push([elf_i, e])
-                    break
+        # second half, each elf with neighbours proposes a move based on the current direction
+        proposed_moves = []
+        participating_elves.each do |elf_i, neighbours|
+            nw, n, ne, w, e, sw, s, se = neighbours
+            directions.each do |direction|
+                if direction.y == -1    # north
+                    if [nw, n, ne].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf_i, n]) 
+                        break
+                    end
+                elsif direction.y == 1  # south
+                    if [sw, s, se].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf_i, s])
+                        break
+                    end
+                elsif direction.x == -1 # west
+                    if [nw, w, sw].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf_i, w])
+                        break
+                    end
+                elsif direction.x == 1  # east
+                    if [ne, e, se].none? { |p| elves.include?(p) }
+                        proposed_moves.push([elf_i, e])
+                        break
+                    end
                 end
             end
         end
+
+        # apply unique position moves
+        proposed_move_points = proposed_moves.map { |elf_i, point| point }
+        proposed_moves.each { |elf_i, point| elves[elf_i] = point if proposed_move_points.count(point) == 1 }
+
+        # rotate directions backwards one step (first -> last, second -> first, etc)
+        directions.rotate!(directions.size + 1)
+
+        rounds_played += 1
+
+        # stop if we've played the round limit
+        break if round_limit and round_limit == rounds_played
     end
 
-    # filter out proposed moves that go to the same position, then apply the unique position moves
-    proposed_move_points = proposed_moves.map { |elf_i, point| point }
-    proposed_moves
-        .keep_if { |elf_i, point| proposed_move_points.count(point) == 1 }
-        .each { |elf_i, point| elves[elf_i] = point }
-
-    # rotate directions backwards one step (first -> last, second -> first, etc)
-    directions.rotate!(directions.size + 1)
+    rounds_played
 end
 
-min_x, max_x = elves.map(&:x).minmax
-min_y, max_y = elves.map(&:y).minmax
-
-raster = ""
-(min_y..max_y).each do |y|
-    (min_x..max_x).each do |x|
-        p = Point.new(x,y)
-        raster += elves.include?(p) ? "#" : "."
+def rasterize(elves)
+    min_x, max_x = elves.map(&:x).minmax
+    min_y, max_y = elves.map(&:y).minmax
+    raster = ""
+    (min_y..max_y).each do |y|
+        (min_x..max_x).each do |x|
+            p = Point.new(x,y)
+            raster += elves.include?(p) ? "#" : "."
+        end
+        raster += "\n"
     end
-    raster += "\n"
+    puts raster
 end
-puts raster
 
-puts (min_x..max_x).size * (min_y..max_y).size - elves.size
+def parse_input(input)
+    elves = []
+    input.each_with_index do |row, y|
+        row.chars.each_with_index do |contents, x|
+            elves.push(Point.new(x, y)) if contents == '#'
+        end
+    end
+    elves
+end
+
+def part1(input)
+    elves = parse_input(input)
+    rounds_played = play_rounds(elves, 10)
+    min_x, max_x = elves.map(&:x).minmax
+    min_y, max_y = elves.map(&:y).minmax
+    puts (min_x..max_x).size * (min_y..max_y).size - elves.size
+end
+
+def part2(input)
+    elves = parse_input(input)
+    rounds_played = play_rounds(elves)
+    puts rounds_played + 1
+end
+
+input = ARGF.read.split("\n")
+
+#part1(input)
+part2(input)
