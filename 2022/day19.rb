@@ -37,8 +37,7 @@ def crack_geodes(blueprint, time_allowed=24)
             new_obsidian = state.obsidian + state.obsidian_robots
             new_geodes = state.geodes + state.geode_robots
 
-            # TODO possible optimizations:
-            # - once we have a geode robot, only try the state where we buy another geode robot?
+            # TODO once we have a geode robot, only try the state where we buy another geode robot?
 
             if state.ore >= blueprint.ore_robot_ore_cost and state.ore_robots < [blueprint.ore_robot_ore_cost, blueprint.obsidian_robot_ore_cost, blueprint.geode_robot_ore_cost].max
                 next_states.add(State.new(next_minute, new_ore - blueprint.ore_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots + 1, state.clay_robots, state.obsidian_robots, state.geode_robots))
@@ -53,6 +52,7 @@ def crack_geodes(blueprint, time_allowed=24)
                 next_states.add(State.new(next_minute, new_ore - blueprint.geode_robot_ore_cost, new_clay, new_obsidian - blueprint.geode_robot_obsidian_cost, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots + 1))
             end
 
+            # TODO only add buy nothing if we can't afford anything or we can afford everything?
             next_states.add(State.new(next_minute, new_ore, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots))
         end
 
@@ -75,5 +75,19 @@ def part1(input)
     puts quality_levels.sum
 end
 
+def part2(input)
+    blueprints = parse_input(input).take(3)
+    geodes = blueprints.map do |blueprint|
+        start_time = Time.new
+        puts "Testing blueprint #{blueprint}..."
+        best_geodes = crack_geodes(blueprint, 32)
+        puts "\tcracked #{best_geodes} in #{Time.new.to_i - start_time.to_i}s"
+        best_geodes
+    end
+    puts geodes.to_s
+    puts geodes.reduce(:*)
+end
+
 input = ARGF.read.split("\n")
-part1(input)
+#part1(input)
+part2(input)
