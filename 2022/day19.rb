@@ -15,7 +15,7 @@ end
 
 def crack_geodes(blueprint, time_allowed=24)
     states = Set.new([State.new(0, 0, 0, 0, 0, 1, 0, 0, 0)])
-    finished_paths = []
+    finished_paths = Set.new()
     minute = 0
 
     max_orebots_needed = [blueprint.ore_robot_ore_cost, blueprint.obsidian_robot_ore_cost, blueprint.geode_robot_ore_cost].max
@@ -37,7 +37,7 @@ def crack_geodes(blueprint, time_allowed=24)
             new_resources_state = State.new(next_minute, new_ore, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots)
 
             if next_minute == time_allowed
-                finished_paths.push(new_resources_state)
+                finished_paths.add(new_resources_state)
             else
                 next_states.add(new_resources_state)
 
