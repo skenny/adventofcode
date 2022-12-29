@@ -28,6 +28,7 @@ def crack_geodes(blueprint, time_allowed=24)
 
         states.each do |state|
             next_minute = state.minute + 1
+            time_remaining = time_allowed - next_minute
 
             if next_minute > time_allowed
                 finished_paths.push(state)
@@ -39,25 +40,31 @@ def crack_geodes(blueprint, time_allowed=24)
             new_obsidian = state.obsidian + state.obsidian_robots
             new_geodes = state.geodes + state.geode_robots
 
-            can_buy_orebot = state.ore >= blueprint.ore_robot_ore_cost
-            can_buy_claybot = state.ore >= blueprint.clay_robot_ore_cost
-            can_buy_obsidibot = state.ore >= blueprint.obsidian_robot_ore_cost && state.clay >= blueprint.obsidian_robot_clay_cost
-            can_buy_geodebot = state.ore >= blueprint.geode_robot_ore_cost && state.obsidian >= blueprint.geode_robot_obsidian_cost
-
-            if can_buy_orebot && state.ore_robots < max_orebots_needed
-                next_states.add(State.new(next_minute, new_ore - blueprint.ore_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots + 1, state.clay_robots, state.obsidian_robots, state.geode_robots))
-            end
-            if can_buy_claybot && state.clay_robots < max_claybots_needed
-                next_states.add(State.new(next_minute, new_ore - blueprint.clay_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots + 1, state.obsidian_robots, state.geode_robots))
-            end
-            if can_buy_obsidibot && state.obsidian_robots < max_obsidibots_needed
-                next_states.add(State.new(next_minute, new_ore - blueprint.obsidian_robot_ore_cost, new_clay - blueprint.obsidian_robot_clay_cost, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots + 1, state.geode_robots))
-            end
-            if can_buy_geodebot
-                next_states.add(State.new(next_minute, new_ore - blueprint.geode_robot_ore_cost, new_clay, new_obsidian - blueprint.geode_robot_obsidian_cost, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots + 1))
-            end
-
             next_states.add(State.new(next_minute, new_ore, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots))
+
+            if time_remaining > 0
+                if time_remaining > 1 && state.ore_robots < max_orebots_needed
+                    if state.ore >= blueprint.ore_robot_ore_cost
+                        next_states.add(State.new(next_minute, new_ore - blueprint.ore_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots + 1, state.clay_robots, state.obsidian_robots, state.geode_robots))
+                    end
+                end
+
+                if time_remaining > 1 && state.clay_robots < max_claybots_needed
+                    if state.ore >= blueprint.clay_robot_ore_cost
+                        next_states.add(State.new(next_minute, new_ore - blueprint.clay_robot_ore_cost, new_clay, new_obsidian, new_geodes, state.ore_robots, state.clay_robots + 1, state.obsidian_robots, state.geode_robots))
+                    end
+                end
+
+                if time_remaining > 1 && state.obsidian_robots < max_obsidibots_needed
+                    if state.ore >= blueprint.obsidian_robot_ore_cost && state.clay >= blueprint.obsidian_robot_clay_cost
+                        next_states.add(State.new(next_minute, new_ore - blueprint.obsidian_robot_ore_cost, new_clay - blueprint.obsidian_robot_clay_cost, new_obsidian, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots + 1, state.geode_robots))
+                    end
+                end
+
+                if state.ore >= blueprint.geode_robot_ore_cost && state.obsidian >= blueprint.geode_robot_obsidian_cost
+                    next_states.add(State.new(next_minute, new_ore - blueprint.geode_robot_ore_cost, new_clay, new_obsidian - blueprint.geode_robot_obsidian_cost, new_geodes, state.ore_robots, state.clay_robots, state.obsidian_robots, state.geode_robots + 1))
+                end
+            end
         end
 
         states = next_states
