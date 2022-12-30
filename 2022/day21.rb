@@ -1,34 +1,55 @@
 class NumberMonkey
-    def initialize(num)
+    attr_accessor :name
+
+    def initialize(name, num)
+        @name = name
         @num = num
     end
 
-    def change_num(new_num)
+    def set_num(new_num)
         @num = new_num
     end
 
     def yell
         @num
     end
+
+    def has_monkey(monkey_name)
+        @name == monkey_name
+    end
 end
 
 class OpMonkey
-    def initialize(op, left, right)
+    attr_accessor :name, :left, :right
+
+    def initialize(name, op, left, right)
+        @name = name
         @op = op
         @left = left
         @right = right
     end
 
-    def change_op(new_op)
+    def set_op(new_op)
         @op = new_op
     end
 
-    def left_yell
-        @left.yell
+    def inverse_op
+        case @op
+        when "+"
+            "-"
+        when "-"
+            "+"
+        when "*"
+            "/"
+        when "/"
+            "*"
+        else
+            @op
+        end
     end
 
-    def right_yell
-        @right.yell
+    def split(search_monkey)
+        @left.has_monkey(search_monkey) ? [@left, @right] : [@right, @left]
     end
 
     def yell
@@ -40,12 +61,20 @@ class OpMonkey
         when "*"
             @left.yell * @right.yell
         when "/"
-            @left.yell / @right.yell
+            @left.yell.to_f / @right.yell.to_f
         when "="
             @left.yell == @right.yell
         else
             "Invalid op: #{op}!"
             exit
+        end
+    end
+
+    def has_monkey(monkey_name)
+        if @name == monkey_name
+            true
+        else
+            @left.has_monkey(monkey_name) || @right.has_monkey(monkey_name)
         end
     end
 end
@@ -56,39 +85,42 @@ def parse_input(input)
         monkey, yells = line.split(": ")
         monkey_lookup[monkey] = yells
     end
-    [parse_monkey("root", monkey_lookup), monkey_lookup["node_humn"]]
+    parse_monkey("root", monkey_lookup)
 end
 
 def parse_monkey(name, monkey_lookup)
     yells = monkey_lookup[name]
-    monkey = nil
     if /(\d+)/.match?(yells)
-        monkey = NumberMonkey.new(yells.to_i)
+        NumberMonkey.new(name, yells.to_i)
     else
         left, op, right = /([a-z]{4}) (\S) ([a-z]{4})/.match(yells).captures
-        monkey = OpMonkey.new(op, parse_monkey(left, monkey_lookup), parse_monkey(right, monkey_lookup))
+        OpMonkey.new(name, op, parse_monkey(left, monkey_lookup), parse_monkey(right, monkey_lookup))
     end
-    monkey_lookup["node_" + name] = monkey
-    monkey
+end
+
+def solve_for(root_monkey, monkey_name)
+    # rotate tree and solve
+    variable_side, constant_side = root_monkey.split(monkey_name)
+    solved = NumberMonkey.new("solved", constant_side.yell)
+    while variable_side.name != monkey_name
+        new_variable_side, new_constant_side = variable_side.split(monkey_name)
+        solved.set_num(OpMonkey.new("foo1", variable_side.inverse_op, solved, NumberMonkey.new("foo2", new_constant_side.yell)).yell)
+        variable_side = new_variable_side
+    end
+    solved.yell
 end
 
 def part1(root_monkey)
     puts root_monkey.yell
 end
 
-def part2(root_monkey, humn_monkey)
-    root_monkey.change_op("=")
-    num = 3_665_520_865_000
-    loop do
-        humn_monkey.change_num(num)
-        break if root_monkey.yell
-        num += 1
-    end
-    puts num
+def part2(root_monkey)
+    root_monkey.set_op("=")
+    puts solve_for(root_monkey, "humn")
 end
 
 input = ARGF.read.split("\n")
-root_monkey, humn_monkey = parse_input(input)
+root_monkey = parse_input(input)
 
 part1(root_monkey)
-part2(root_monkey, humn_monkey)
+part2(root_monkey)
