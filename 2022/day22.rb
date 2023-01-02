@@ -59,9 +59,6 @@ class World1
             [2, "<"]
         when Point.new(0, -1) # up
             [3, "^"]
-        else
-            puts "Invalid facing vector: #{@facing_vector}"
-            [-1, "_"]
         end
     end
 
@@ -69,19 +66,40 @@ class World1
         @grid_sections[position.y][position.x]
     end
 
+    def wraps(position)
+        (grid_position(position) || ' ') == ' '
+    end
+
     def move_player(instr)
         if /(\d+)/.match?(instr)
             steps = instr.to_i
-            #puts "moving #{steps} from #{@player_position}"
-            steps.times do |step_i|
-                next_position = get_next_player_position
-                grid_contents = grid_position(next_position)
-                #puts "in front at #{next_position} is #{grid_contents}"
-                if grid_contents == '#'
-                    #puts "stopping!"
+            steps.times do
+                forward_position = @player_position.move(@facing_vector, @grid_sections[@player_position.y].size, @height)
+                
+                if wraps(forward_position)
+                    wrap_x = forward_position.x
+                    wrap_y = forward_position.y
+
+                    facing_val, facing_dir = get_facing
+                    case facing_dir
+                    when ">"
+                        wrap_x = @grid_sections[forward_position.y].chars.index { |char| char != ' ' }
+                    when "v"
+                        wrap_y = @grid_sections.index { |row| forward_position.x < row.size && row[forward_position.x] != ' ' }
+                    when "<"
+                        wrap_x = @grid_sections[forward_position.y].chars.rindex { |char| char != ' ' }
+                    when "^"
+                        wrap_y = @grid_sections.rindex { |row| forward_position.x < row.size && row[forward_position.x] != ' ' }
+                    end
+
+                    forward_position = Point.new(wrap_x, wrap_y)
+                end
+
+                if grid_position(forward_position) == '#'
                     break
                 end
-                @player_position = next_position
+
+                @player_position = forward_position
             end
         else
             turn_player(instr)
@@ -89,35 +107,14 @@ class World1
     end
 
     def turn_player(direction)
-        #puts "turning #{direction} from #{get_facing}"
         case direction
         when "L"
             @facing_vector = @facing_vector.turn_left
         when "R"
             @facing_vector = @facing_vector.turn_right
         end
-        #puts "\tnow facing #{get_facing}"
     end
 
-    def get_next_player_position
-        front = @player_position.move(@facing_vector, @grid_sections[@player_position.y].size, @height)
-        grid_contents = grid_position(front) || ' '
-        if grid_contents == ' '
-            facing_val, facing_dir = get_facing
-            case facing_dir
-            when ">" # right
-                Point.new(@grid_sections[front.y].chars.index { |char| char != ' ' }, front.y)
-            when "v" # down
-                Point.new(front.x, @grid_sections.index { |row| front.x < row.size && row[front.x] != ' ' })
-            when "<" # left
-                Point.new(@grid_sections[front.y].chars.rindex { |char| char != ' ' }, front.y)
-            when "^" # up
-                Point.new(front.x, @grid_sections.rindex { |row| front.x < row.size && row[front.x] != ' ' })
-            end
-        else
-            front
-        end
-    end
 end
 
 class World2
