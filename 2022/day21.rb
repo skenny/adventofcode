@@ -20,7 +20,7 @@ class NumberMonkey
 end
 
 class OpMonkey
-    attr_accessor :name, :left, :right
+    attr_accessor :name, :op, :left, :right
 
     def initialize(name, op, left, right)
         @name = name
@@ -98,13 +98,25 @@ def parse_monkey(name, monkey_lookup)
     end
 end
 
-def solve_for(root_monkey, monkey_name)
+def solve_for(root_monkey, solve_for_monkey)
     # rotate tree and solve
-    variable_side, constant_side = root_monkey.split(monkey_name)
+    variable_side, constant_side = root_monkey.split(solve_for_monkey)
     solved = NumberMonkey.new("solved", constant_side.yell)
-    while variable_side.name != monkey_name
-        new_variable_side, new_constant_side = variable_side.split(monkey_name)
-        solved.set_num(OpMonkey.new("foo1", variable_side.inverse_op, solved, NumberMonkey.new("foo2", new_constant_side.yell)).yell)
+    while variable_side.name != solve_for_monkey
+        new_variable_side, new_constant_side = variable_side.split(solve_for_monkey)
+        new_known_number = NumberMonkey.new("foo2", new_constant_side.yell)
+
+        combination_op = variable_side.inverse_op
+        combination_left = solved
+        combination_right = new_known_number
+        if variable_side.op == "/" && new_constant_side == variable_side.left
+            combination_left = new_known_number
+            combination_right = solved
+        end
+
+        combined = OpMonkey.new("comb", combination_op, combination_left, combination_right).yell
+        solved.set_num(combined)
+
         variable_side = new_variable_side
     end
     solved.yell
