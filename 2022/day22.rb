@@ -49,7 +49,7 @@ class World1
         @height = grid_spec.size
         @grid_sections = grid_spec.each { |line| line.chars }
         @player_position = Point.new(@grid_sections[0].chars.index { |char| char != ' ' }, 0)
-        @facing_vector = Point.new(1, 0)
+        @player_vector = Point.new(1, 0)
     end
 
     def get_final_password
@@ -60,7 +60,7 @@ class World1
     end
 
     def get_facing
-        case @facing_vector
+        case @player_vector
         when Point.new(1, 0)  # right
             [0, ">"]
         when Point.new(0, 1)  # down
@@ -85,7 +85,7 @@ class World1
             steps = instr.to_i
             steps.times do
                 
-                forward_position = @player_position.move_and_wrap(@facing_vector, @grid_sections[@player_position.y].size, @height)
+                forward_position = @player_position.move_and_wrap(@player_vector, @grid_sections[@player_position.y].size, @height)
                 
                 if wraps(forward_position)
                     wrap_x = forward_position.x
@@ -120,9 +120,9 @@ class World1
     def turn_player(direction)
         case direction
         when "L"
-            @facing_vector = @facing_vector.turn_left
+            @player_vector = @player_vector.turn_left
         when "R"
-            @facing_vector = @facing_vector.turn_right
+            @player_vector = @player_vector.turn_right
         end
     end
 
@@ -130,7 +130,7 @@ end
 
 class World2
 
-    @@face_changes = {
+    @@face_transitions = {
         # face index => [R,D,L,U] to match directions; each is [new face index, new direction index]
         0 => [ [1, 0], [2, 1], [3, 0], [5, 0] ],
         1 => [ [4, 2], [2, 2], [0, 2], [5, 3] ],
@@ -145,7 +145,7 @@ class World2
         @cube_face_size = cube_face_size
         @player_position = Point.new(0, 0)
         @player_cube_face_index = 0
-        @facing_vector = Point.new(1,0)
+        @player_vector = Point.new(1,0)
     end
 
     def parse_cube(grid_spec, cube_face_size)
@@ -182,7 +182,7 @@ class World2
         map_offset = @cube[@player_cube_face_index].offset
         row = @player_position.y + map_offset.y + 1
         col = @player_position.x + map_offset.x + 1
-        facing_val, facing_dir = get_facing(@facing_vector)
+        facing_val, facing_dir = get_facing(@player_vector)
         1000 * row + 4 * col + facing_val
     end
 
@@ -190,65 +190,66 @@ class World2
         if /(\d+)/.match?(instr)
             steps = instr.to_i
             steps.times do
-                facing_index, facing_dir = get_facing(@facing_vector)
-                forward_position = @player_position.move(@facing_vector)
+                facing_index, facing_dir = get_facing(@player_vector)
+                forward_position = @player_position.move(@player_vector)
                 forward_cube_face_index = @player_cube_face_index
-                forward_facing_vector = @facing_vector
-
-                #puts "moving #{facing_dir} from #{@player_position} to #{forward_position}..."
+                forward_player_vector = @player_vector
 
                 if forward_position.x == -1 || forward_position.x == @cube_face_size || forward_position.y == -1 || forward_position.y == @cube_face_size
-                    forward_cube_face_index, forward_facing_index = @@face_changes[@player_cube_face_index][facing_index]
-                    #puts "\twrapped faces from #{@player_cube_face_index} to #{forward_cube_face_index} and changed direction from #{facing_index} to #{forward_facing_index}"
-
+                    forward_cube_face_index, forward_facing_index = @@face_transitions[@player_cube_face_index][facing_index]
                     orientation_change = facing_index % 2 != forward_facing_index % 2
 
                     case forward_facing_index
                     when 0
-                        forward_position = Point.new(0, orientation_change ? @player_position.x : @player_position.y)
-                        forward_facing_vector = Point.new(1, 0)
+                        new_y = orientation_change ? @player_position.x : @player_position.y
+                        
+                        # handle < to > 
+                        # example: face 3 [0,1] going < to > on face 0 [0,48]
+                        if !orientation_change && facing_index != forward_facing_index
+                            new_y = @cube_face_size - 1 - @player_position.y
+                        end
+
+                        forward_position = Point.new(0, new_y)
+                        forward_player_vector = Point.new(1, 0)
                     when 1
                         forward_position = Point.new(orientation_change ? @player_position.y : @player_position.x, 0)
-                        forward_facing_vector = Point.new(0, 1)
+                        forward_player_vector = Point.new(0, 1)
                     when 2
-                        forward_position = Point.new(@cube_face_size - 1, orientation_change ? @player_position.x : @player_position.y)
-                        forward_facing_vector = Point.new(-1, 0)
+                        new_y = orientation_change ? @player_position.x : @player_position.y
+
+                        # handle > to <
+                        # example: face 4 [49,15] going > to < on face 1 [49,34]
+                        if !orientation_change && facing_index != forward_facing_index
+                            new_y = @cube_face_size - 1 - @player_position.y
+                        end
+
+                        forward_position = Point.new(@cube_face_size - 1, new_y)
+                        forward_player_vector = Point.new(-1, 0)
                     when 3
                         forward_position = Point.new(orientation_change ? @player_position.y : @player_position.x, @cube_face_size - 1)
-                        forward_facing_vector = Point.new(0, -1)
-                    end
-                    #puts "\torientation_change? #{orientation_change} - new face forward position is #{forward_position}"
-
-                    zzz, forward_facing_dir = get_facing(forward_facing_vector)
-
-                    if grid_position(forward_cube_face_index, forward_position) != '#'
-                        puts "face #{@player_cube_face_index} #{@player_position} going #{facing_dir} to #{forward_facing_dir} on face #{forward_cube_face_index} #{forward_position}; #{orientation_change ? 'flipped!' : ''}"
+                        forward_player_vector = Point.new(0, -1)
                     end
                 end
 
                 if grid_position(forward_cube_face_index, forward_position) == '#'
-                    #puts "\t#{forward_position} on face #{forward_cube_face_index} is blocked!"
                     break
                 end
 
                 @player_position = forward_position
                 @player_cube_face_index = forward_cube_face_index
-                @facing_vector = forward_facing_vector
+                @player_vector = forward_player_vector
             end
         else
-            #facing_index, facing_dir = get_facing(@facing_vector)
             turn_player(instr)
-            #new_facing_index, new_facing_dir = get_facing(@facing_vector)
-            #puts "turning #{instr} from #{facing_dir} to #{new_facing_dir} on face #{@player_cube_face_index} at #{@player_position}"
         end
     end
 
     def turn_player(direction)
         case direction
         when "L"
-            @facing_vector = @facing_vector.turn_left
+            @player_vector = @player_vector.turn_left
         when "R"
-            @facing_vector = @facing_vector.turn_right
+            @player_vector = @player_vector.turn_right
         end
     end
 
@@ -265,9 +266,3 @@ end
 grid_spec, moves_spec = ARGF.read.split("\n\n").map{ |section_lines| section_lines.split("\n") }
 puts find_final_password(World1.new(grid_spec), moves_spec.first)
 puts find_final_password(World2.new(grid_spec, 50), moves_spec.first)
-
-# part 2
-# 55360 is too low
-# 55364 is too low
-# 97337 is too low
-# 147275 is wrong
