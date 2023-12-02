@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"unicode"
 
 	"github.com/skenny/adventofcode/2023/util"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	fmt.Println("Day 1")
-	input, err := util.ReadFile("day1-test2-input")
+	input, err := util.ReadFile("day1-input")
 	if err != nil {
 		fmt.Println("Error reading input", err)
 		return
@@ -22,8 +23,7 @@ func main() {
 func part1(input []string) {
 	numbers := []int{}
 	for _, line := range input {
-		lineNumberStr := string(findFirstNumber(line)) + string(findFirstNumber(util.ReverseString(line)))
-		lineNumber, err := strconv.Atoi(lineNumberStr)
+		lineNumber, err := extractNumber(line, false)
 		if err == nil {
 			numbers = append(numbers, lineNumber)
 		}
@@ -32,23 +32,9 @@ func part1(input []string) {
 }
 
 func part2(input []string) {
-	//conversionInputs := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
-	//conversionOutputs := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	numbers := []int{}
 	for _, line := range input {
-		/* this doesn't work:
-		for i, word := range conversionInputs {
-			line = strings.ReplaceAll(line, word, strconv.Itoa(conversionOutputs[i]))
-		}
-		*/
-
-		/* maybe this would work:
-		- check if word starts with a conversionInput; if so, replace
-		- otherwise, pop the front character, and repeat
-		*/
-
-		lineNumberStr := string(findFirstNumber(line)) + string(findFirstNumber(util.ReverseString(line)))
-		lineNumber, err := strconv.Atoi(lineNumberStr)
+		lineNumber, err := extractNumber(line, true)
 		if err == nil {
 			numbers = append(numbers, lineNumber)
 		}
@@ -56,12 +42,25 @@ func part2(input []string) {
 	fmt.Printf("Part 2: %v\n", util.SumInts(numbers))
 }
 
-func findFirstNumber(str string) int {
-	for _, c := range str {
-		if unicode.IsNumber(c) {
-			return int(c)
+func extractNumber(line string, checkWords bool) (int, error) {
+	numberWords := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
+
+	var numberStrBuilder strings.Builder
+
+	for i, ch := range line {
+		if unicode.IsNumber(ch) {
+			numberStrBuilder.WriteRune(ch)
+		}
+		if checkWords {
+			remainingLine := line[i:]
+			for i, word := range numberWords {
+				if strings.HasPrefix(remainingLine, word) {
+					numberStrBuilder.WriteString(strconv.Itoa(i + 1))
+				}
+			}
 		}
 	}
-	// should never happen
-	return 0
+
+	numberStr := numberStrBuilder.String()
+	return strconv.Atoi(string(numberStr[0]) + string(numberStr[len(numberStr)-1]))
 }
