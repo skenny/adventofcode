@@ -18,20 +18,34 @@ type Reveal struct {
 }
 
 func main() {
-	fmt.Printf("Day %v", day)
-	input := util.ReadTestInput(day)
+	fmt.Printf("Day %v\n", day)
+	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
 }
 
 func part1(input []string) {
+	const maxRed, maxGreen, maxBlue int = 12, 13, 14
+	sumPossibleIds := 0
 	for _, gameDesc := range input {
-		id, reveals := parseGame(gameDesc)
-		fmt.Printf("Game %v has reveals %v\n", id, reveals)
+		id, possible := checkGame(gameDesc, maxRed, maxGreen, maxBlue)
+		if possible {
+			sumPossibleIds += id
+		}
 	}
+	fmt.Printf("Part 1: %v", sumPossibleIds)
 }
 
 func part2(input []string) {
+}
+
+func checkGame(gameDesc string, maxRed, maxGreen, maxBlue int) (int, bool) {
+	id, reveals := parseGame(gameDesc)
+	possible := true
+	for _, reveal := range reveals {
+		possible = possible && (reveal.Red <= maxRed && reveal.Green <= maxGreen && reveal.Blue <= maxBlue)
+	}
+	return id, possible
 }
 
 func parseGame(gameDesc string) (int, []Reveal) {
