@@ -1,17 +1,28 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
 
-func ReadFile(filename string) ([]string, error) {
-	content, err := os.ReadFile(filename)
+func ReadInput(day int) []string {
+	filename := fmt.Sprintf("day%v-input", day)
+	return ReadFile(filename)
+}
+
+func ReadTestInput(day int) []string {
+	filename := fmt.Sprintf("day%v-test-input", day)
+	return ReadFile(filename)
+}
+
+func ReadFile(filename string) []string {
+	contents, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	lines := strings.Split(string(content), "\n")
-	return lines, nil
+	input := strings.Split(string(contents), "\n")
+	return input
 }
 
 func MapSlice[T any, M any](a []T, f func(T) M) []M {

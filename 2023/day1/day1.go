@@ -9,40 +9,32 @@ import (
 	"github.com/skenny/adventofcode/2023/util"
 )
 
+const day int = 1
+
 func main() {
-	fmt.Println("Day 1")
-	input, err := util.ReadFile("day1-input")
-	if err != nil {
-		fmt.Println("Error reading input", err)
-		return
-	}
+	fmt.Printf("Day %v\n", day)
+	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
 }
 
 func part1(input []string) {
-	numbers := []int{}
-	for _, line := range input {
-		lineNumber, err := extractNumber(line, false)
-		if err == nil {
-			numbers = append(numbers, lineNumber)
-		}
-	}
-	fmt.Printf("Part 1: %v\n", util.SumInts(numbers))
+	fmt.Printf("Part 1: %v\n", util.SumInts(util.MapSlice(input, extractNumber1)))
 }
 
 func part2(input []string) {
-	numbers := []int{}
-	for _, line := range input {
-		lineNumber, err := extractNumber(line, true)
-		if err == nil {
-			numbers = append(numbers, lineNumber)
-		}
-	}
-	fmt.Printf("Part 2: %v\n", util.SumInts(numbers))
+	fmt.Printf("Part 2: %v\n", util.SumInts(util.MapSlice(input, extractNumber2)))
 }
 
-func extractNumber(line string, checkWords bool) (int, error) {
+func extractNumber1(line string) int {
+	return parseNumber(line, false)
+}
+
+func extractNumber2(line string) int {
+	return parseNumber(line, true)
+}
+
+func parseNumber(line string, checkWords bool) int {
 	numberWords := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
 	var numberStrBuilder strings.Builder
@@ -62,5 +54,12 @@ func extractNumber(line string, checkWords bool) (int, error) {
 	}
 
 	numberStr := numberStrBuilder.String()
-	return strconv.Atoi(string(numberStr[0]) + string(numberStr[len(numberStr)-1]))
+	number := string(numberStr[0]) + string(numberStr[len(numberStr)-1])
+
+	i, err := strconv.Atoi(number)
+	if err != nil {
+		panic(fmt.Sprintf("%v -> %v -> %v, but %v is not a number", line, numberStr, number, number))
+	}
+
+	return i
 }
