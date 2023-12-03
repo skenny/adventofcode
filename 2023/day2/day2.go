@@ -28,24 +28,28 @@ func part1(input []string) {
 	const maxRed, maxGreen, maxBlue int = 12, 13, 14
 	sumPossibleIds := 0
 	for _, gameDesc := range input {
-		id, possible := checkGame(gameDesc, maxRed, maxGreen, maxBlue)
+		id, reveals := parseGame(gameDesc)
+		possible := true
+		for _, reveal := range reveals {
+			possible = possible && (reveal.Red <= maxRed && reveal.Green <= maxGreen && reveal.Blue <= maxBlue)
+		}
 		if possible {
 			sumPossibleIds += id
 		}
 	}
-	fmt.Printf("Part 1: %v", sumPossibleIds)
+	fmt.Printf("Part 1: %v\n", sumPossibleIds)
 }
 
 func part2(input []string) {
-}
-
-func checkGame(gameDesc string, maxRed, maxGreen, maxBlue int) (int, bool) {
-	id, reveals := parseGame(gameDesc)
-	possible := true
-	for _, reveal := range reveals {
-		possible = possible && (reveal.Red <= maxRed && reveal.Green <= maxGreen && reveal.Blue <= maxBlue)
+	sumPowerSets := 0
+	for _, gameDesc := range input {
+		_, reveals := parseGame(gameDesc)
+		reds := util.MapSlice(reveals, func(r Reveal) int { return r.Red })
+		greens := util.MapSlice(reveals, func(r Reveal) int { return r.Green })
+		blues := util.MapSlice(reveals, func(r Reveal) int { return r.Blue })
+		sumPowerSets += util.MaxInt(reds) * util.MaxInt(greens) * util.MaxInt(blues)
 	}
-	return id, possible
+	fmt.Printf("Part 2: %v\n", sumPowerSets)
 }
 
 func parseGame(gameDesc string) (int, []Reveal) {

@@ -48,3 +48,13 @@ func SumInts(ints []int) int {
 	}
 	return result
 }
+
+func MaxInt(ints []int) int {
+	max := 0
+	for i, val := range ints {
+		if i == 0 || val > max {
+			max = val
+		}
+	}
+	return max
+}
