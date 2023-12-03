@@ -48,6 +48,7 @@ func parseNumber(line string, checkWords bool) int {
 			for i, word := range numberWords {
 				if strings.HasPrefix(remainingLine, word) {
 					numberStrBuilder.WriteString(strconv.Itoa(i + 1))
+					break
 				}
 			}
 		}
