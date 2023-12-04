@@ -46,29 +46,28 @@ func part1(input []string) {
 func part2(input []string) {
 	originalScratchCards := parseScratchCards(input)
 
+	// cache the winning number counts for each scratch card
+	cardResults := make(map[int]int)
+	for _, scratchCard := range originalScratchCards {
+		cardResults[scratchCard.Number] = countWinningNumbers(scratchCard)
+	}
+
 	// make a working copy of the scratch cards to act as a stack for evaluation
-	workingScratchCards := make([]ScratchCard, len(originalScratchCards))
-	copy(workingScratchCards, originalScratchCards)
+	scratchCardStack := make([]ScratchCard, len(originalScratchCards))
+	copy(scratchCardStack, originalScratchCards)
 
-	cardCount := len(originalScratchCards)
+	cardCount := 0
 	for {
-		// pop off the first card to evaluate
-		scratchCard := workingScratchCards[0]
-		workingScratchCards = workingScratchCards[1:]
+		cardCount += 1
 
-		countWinningNumbers := 0
-		for _, winningNumber := range scratchCard.WinningNumbers {
-			if slices.Contains(scratchCard.PickedNumbers, winningNumber) {
-				countWinningNumbers += 1
-			}
+		// pop a card
+		scratchCard := scratchCardStack[0]
+		scratchCardStack = scratchCardStack[1:]
+		for i := 1; i <= cardResults[scratchCard.Number]; i++ {
+			scratchCardStack = append(scratchCardStack, originalScratchCards[scratchCard.Number-1+i])
 		}
 
-		for i := 1; i <= countWinningNumbers; i++ {
-			workingScratchCards = append(workingScratchCards, originalScratchCards[scratchCard.Number-1+i])
-			cardCount += 1
-		}
-
-		if len(workingScratchCards) == 0 {
+		if len(scratchCardStack) == 0 {
 			break
 		}
 	}
@@ -92,4 +91,14 @@ func parseScratchCards(input []string) []ScratchCard {
 
 		return ScratchCard{cardNumber, winningNumbers, pickedNumbers}
 	})
+}
+
+func countWinningNumbers(scratchCard ScratchCard) int {
+	count := 0
+	for _, winningNumber := range scratchCard.WinningNumbers {
+		if slices.Contains(scratchCard.PickedNumbers, winningNumber) {
+			count += 1
+		}
+	}
+	return count
 }
