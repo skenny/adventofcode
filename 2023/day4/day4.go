@@ -19,7 +19,7 @@ type ScratchCard struct {
 
 func main() {
 	fmt.Printf("Day %v\n", day)
-	input := util.ReadTestInput(day)
+	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
 }
@@ -44,9 +44,35 @@ func part1(input []string) {
 }
 
 func part2(input []string) {
-	scratchCards := parseScratchCards(input)
-	cardCount := len(scratchCards)
-	// TODO
+	originalScratchCards := parseScratchCards(input)
+
+	// make a working copy of the scratch cards to act as a stack for evaluation
+	workingScratchCards := make([]ScratchCard, len(originalScratchCards))
+	copy(workingScratchCards, originalScratchCards)
+
+	cardCount := len(originalScratchCards)
+	for {
+		// pop off the first card to evaluate
+		scratchCard := workingScratchCards[0]
+		workingScratchCards = workingScratchCards[1:]
+
+		countWinningNumbers := 0
+		for _, winningNumber := range scratchCard.WinningNumbers {
+			if slices.Contains(scratchCard.PickedNumbers, winningNumber) {
+				countWinningNumbers += 1
+			}
+		}
+
+		for i := 1; i <= countWinningNumbers; i++ {
+			workingScratchCards = append(workingScratchCards, originalScratchCards[scratchCard.Number-1+i])
+			cardCount += 1
+		}
+
+		if len(workingScratchCards) == 0 {
+			break
+		}
+	}
+
 	fmt.Printf("Part 2: %v\n", cardCount)
 }
 
