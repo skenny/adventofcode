@@ -55,13 +55,13 @@ func waysToWin(races []Race) []int {
 func parseInput(input []string) []Race {
 	times := util.MapSlice(strings.Fields(input[0])[1:], util.MustAtoi)
 	distances := util.MapSlice(strings.Fields(input[1])[1:], util.MustAtoi)
-	timesAndDistances := []Race{}
+	races := []Race{}
 	for i := 0; i < len(times); i++ {
 		time := times[i]
 		distance := distances[i]
-		timesAndDistances = append(timesAndDistances, Race{time, distance})
+		races = append(races, Race{time, distance})
 	}
-	return timesAndDistances
+	return races
 }
 
 func product(values []int) int {
