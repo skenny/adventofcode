@@ -42,9 +42,9 @@ func waysToWin(races []Race) []int {
 		winningDistances := []int{}
 		for buttonPressDuration := 1; buttonPressDuration < race.Time; buttonPressDuration++ {
 			speed := buttonPressDuration
-			movedDistance := (race.Time - buttonPressDuration) * speed
-			if movedDistance > race.Distance {
-				winningDistances = append(winningDistances, movedDistance)
+			distance := (race.Time - buttonPressDuration) * speed
+			if distance > race.Distance {
+				winningDistances = append(winningDistances, distance)
 			}
 		}
 		waysToWin = append(waysToWin, len(winningDistances))
@@ -57,9 +57,7 @@ func parseInput(input []string) []Race {
 	distances := util.MapSlice(strings.Fields(input[1])[1:], util.MustAtoi)
 	races := []Race{}
 	for i := 0; i < len(times); i++ {
-		time := times[i]
-		distance := distances[i]
-		races = append(races, Race{time, distance})
+		races = append(races, Race{times[i], distances[i]})
 	}
 	return races
 }
