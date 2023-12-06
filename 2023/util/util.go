@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -57,4 +58,16 @@ func MaxInt(ints []int) int {
 		}
 	}
 	return max
+}
+
+func MustAtoi(input string) int {
+	parsed, err := strconv.Atoi(input)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to convert %v to an int: %v", input, err))
+	}
+	return parsed
+}
+
+func StringsToInts(strs []string) []int {
+	return MapSlice(strs, MustAtoi)
 }
