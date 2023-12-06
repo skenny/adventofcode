@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/skenny/adventofcode/2023/util"
@@ -23,9 +24,21 @@ func main() {
 
 func part1(input []string) {
 	timesAndDistances := parseInput(input)
+	fmt.Printf("Part 1: %v\n", waysToWin(timesAndDistances))
+}
+
+func part2(input []string) {
+	timesAndDistances := parseInput(input)
+	times := util.MapSlice(timesAndDistances, func(td TimeAndDistance) string { return strconv.Itoa(td.Time) })
+	distances := util.MapSlice(timesAndDistances, func(td TimeAndDistance) string { return strconv.Itoa(td.Distance) })
+	combinedTime := util.MustAtoi(strings.Join(times, ""))
+	combinedDistance := util.MustAtoi(strings.Join(distances, ""))
+	fmt.Printf("Part 2: %v\n", waysToWin([]TimeAndDistance{{combinedTime, combinedDistance}}))
+}
+
+func waysToWin(timesAndDistances []TimeAndDistance) int {
 	waysToWin := []int{}
 	for _, td := range timesAndDistances {
-		fmt.Printf("This race lasts %v ms, and the record distance is %v mm\n", td.Time, td.Distance)
 		winningDistances := []int{}
 		for buttonPressDuration := 1; buttonPressDuration < td.Time; buttonPressDuration++ {
 			speed := buttonPressDuration
@@ -36,10 +49,7 @@ func part1(input []string) {
 		}
 		waysToWin = append(waysToWin, len(winningDistances))
 	}
-	fmt.Printf("Part 1: %v", product(waysToWin))
-}
-
-func part2(input []string) {
+	return product(waysToWin)
 }
 
 func parseInput(input []string) []TimeAndDistance {
