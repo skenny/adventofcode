@@ -24,7 +24,7 @@ func main() {
 
 func part1(input []string) {
 	timesAndDistances := parseInput(input)
-	fmt.Printf("Part 1: %v\n", waysToWin(timesAndDistances))
+	fmt.Printf("Part 1: %v\n", product(waysToWin(timesAndDistances)))
 }
 
 func part2(input []string) {
@@ -33,10 +33,10 @@ func part2(input []string) {
 	distances := util.MapSlice(timesAndDistances, func(td TimeAndDistance) string { return strconv.Itoa(td.Distance) })
 	combinedTime := util.MustAtoi(strings.Join(times, ""))
 	combinedDistance := util.MustAtoi(strings.Join(distances, ""))
-	fmt.Printf("Part 2: %v\n", waysToWin([]TimeAndDistance{{combinedTime, combinedDistance}}))
+	fmt.Printf("Part 2: %v\n", waysToWin([]TimeAndDistance{{combinedTime, combinedDistance}})[0])
 }
 
-func waysToWin(timesAndDistances []TimeAndDistance) int {
+func waysToWin(timesAndDistances []TimeAndDistance) []int {
 	waysToWin := []int{}
 	for _, td := range timesAndDistances {
 		winningDistances := []int{}
@@ -49,7 +49,7 @@ func waysToWin(timesAndDistances []TimeAndDistance) int {
 		}
 		waysToWin = append(waysToWin, len(winningDistances))
 	}
-	return product(waysToWin)
+	return waysToWin
 }
 
 func parseInput(input []string) []TimeAndDistance {
