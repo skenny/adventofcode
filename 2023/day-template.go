@@ -10,7 +10,7 @@ const day int = 1
 
 func main() {
 	fmt.Printf("Day %v\n", day)
-	input := util.ReadInput(day)
+	input := util.ReadTestInput(day)
 	part1(input)
 	part2(input)
 }
