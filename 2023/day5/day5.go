@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/skenny/adventofcode/2023/util"
@@ -23,37 +22,26 @@ func main() {
 	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
+
+	seedRanges := []string{"1263068588 44436703", "1116624626 2393304", "2098781025 128251971", "2946842531 102775703", "2361566863 262106125", "221434439 24088025", "1368516778 69719147", "3326254382 101094138", "1576631370 357411492", "3713929839 154258863"}
+	for i, sr := range seedRanges {
+		parts := strings.Fields(sr)
+		fmt.Printf("%v .. %v (%v)\n", parts[0], util.MustAtoi(parts[0])+util.MustAtoi(parts[1])-1, i+1)
+	}
 }
 
 func part1(input []string) {
 	seeds, conversionSteps, conversionMaps := parseInput(input)
-	// fmt.Printf("Seeds: %v\n", seeds)
-	// fmt.Printf("Conversion Steps: %v\n", conversionSteps)
-	// for _, cs := range conversionSteps {
-	// 	fmt.Println(cs)
-	// 	for k, v := range conversionMaps[cs] {
-	// 		fmt.Printf("\t%v -> %v\n", k, v)
-	// 	}
-	// }
-
-	fmt.Println("Converting...")
-
 	locations := []int{}
 	for _, seed := range seeds {
-		fmt.Println(seed)
 		src := seed
 		for _, cs := range conversionSteps {
-			conversionRanges, ok := conversionMaps[cs]
-			if !ok {
-				panic(fmt.Sprintf("No conversion range mapped for %v", cs))
-			}
-			result := convert(src, conversionRanges)
-			fmt.Printf("\t%v: %v -> %v\n", cs, src, result)
+			result := convert(src, conversionMaps[cs])
+			//fmt.Printf("\t%v: %v -> %v\n", cs, src, result)
 			src = result
 		}
 		locations = append(locations, src)
 	}
-
 	fmt.Printf("Part 1: %v\n", slices.Min(locations))
 }
 
@@ -74,8 +62,6 @@ func parseInput(input []string) ([]int, []string, map[string][]ConversionRange) 
 	conversionSteps := []string{}
 	conversionMaps := make(map[string][]ConversionRange)
 
-	fmt.Printf("Started parsing input at %v\n", time.Now())
-
 	workingConversionMap := ""
 	for _, line := range input[1:] {
 		// skip blanks
@@ -87,7 +73,6 @@ func parseInput(input []string) ([]int, []string, map[string][]ConversionRange) 
 		if unicode.IsLetter(rune(line[0])) {
 			workingConversionMap = strings.Fields(line)[0]
 			conversionSteps = append(conversionSteps, workingConversionMap)
-			fmt.Printf("%v...\n", workingConversionMap)
 			continue
 		}
 
@@ -96,16 +81,11 @@ func parseInput(input []string) ([]int, []string, map[string][]ConversionRange) 
 		if !exists {
 			conversionRanges = []ConversionRange{}
 		}
-
-		// TODO do not expand all ranges, it'll never complete on the real input
 		conversionRangeParts := strings.Fields(line)
 		destStart, sourceStart, rangeLen := util.MustAtoi(conversionRangeParts[0]), util.MustAtoi(conversionRangeParts[1]), util.MustAtoi(conversionRangeParts[2])
-		//fmt.Printf("\t%v -> %v, range=%v...\n", sourceStart, destStart, rangeLen)
 		conversionRanges = append(conversionRanges, ConversionRange{sourceStart, destStart, rangeLen})
 		conversionMaps[workingConversionMap] = conversionRanges
 	}
-
-	fmt.Printf("Finished parsing input at %v\n", time.Now())
 
 	return seeds, conversionSteps, conversionMaps
 }
