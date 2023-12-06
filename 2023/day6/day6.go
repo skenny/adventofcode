@@ -10,7 +10,7 @@ import (
 
 const day int = 6
 
-type TimeAndDistance struct {
+type Race struct {
 	Time     int
 	Distance int
 }
@@ -23,27 +23,27 @@ func main() {
 }
 
 func part1(input []string) {
-	timesAndDistances := parseInput(input)
-	fmt.Printf("Part 1: %v\n", product(waysToWin(timesAndDistances)))
+	races := parseInput(input)
+	fmt.Printf("Part 1: %v\n", product(waysToWin(races)))
 }
 
 func part2(input []string) {
-	timesAndDistances := parseInput(input)
-	times := util.MapSlice(timesAndDistances, func(td TimeAndDistance) string { return strconv.Itoa(td.Time) })
-	distances := util.MapSlice(timesAndDistances, func(td TimeAndDistance) string { return strconv.Itoa(td.Distance) })
+	races := parseInput(input)
+	times := util.MapSlice(races, func(td Race) string { return strconv.Itoa(td.Time) })
+	distances := util.MapSlice(races, func(td Race) string { return strconv.Itoa(td.Distance) })
 	combinedTime := util.MustAtoi(strings.Join(times, ""))
 	combinedDistance := util.MustAtoi(strings.Join(distances, ""))
-	fmt.Printf("Part 2: %v\n", waysToWin([]TimeAndDistance{{combinedTime, combinedDistance}})[0])
+	fmt.Printf("Part 2: %v\n", waysToWin([]Race{{combinedTime, combinedDistance}})[0])
 }
 
-func waysToWin(timesAndDistances []TimeAndDistance) []int {
+func waysToWin(races []Race) []int {
 	waysToWin := []int{}
-	for _, td := range timesAndDistances {
+	for _, race := range races {
 		winningDistances := []int{}
-		for buttonPressDuration := 1; buttonPressDuration < td.Time; buttonPressDuration++ {
+		for buttonPressDuration := 1; buttonPressDuration < race.Time; buttonPressDuration++ {
 			speed := buttonPressDuration
-			movedDistance := (td.Time - buttonPressDuration) * speed
-			if movedDistance > td.Distance {
+			movedDistance := (race.Time - buttonPressDuration) * speed
+			if movedDistance > race.Distance {
 				winningDistances = append(winningDistances, movedDistance)
 			}
 		}
@@ -52,14 +52,14 @@ func waysToWin(timesAndDistances []TimeAndDistance) []int {
 	return waysToWin
 }
 
-func parseInput(input []string) []TimeAndDistance {
+func parseInput(input []string) []Race {
 	times := util.MapSlice(strings.Fields(input[0])[1:], util.MustAtoi)
 	distances := util.MapSlice(strings.Fields(input[1])[1:], util.MustAtoi)
-	timesAndDistances := []TimeAndDistance{}
+	timesAndDistances := []Race{}
 	for i := 0; i < len(times); i++ {
 		time := times[i]
 		distance := distances[i]
-		timesAndDistances = append(timesAndDistances, TimeAndDistance{time, distance})
+		timesAndDistances = append(timesAndDistances, Race{time, distance})
 	}
 	return timesAndDistances
 }
