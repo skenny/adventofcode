@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 	"unicode"
@@ -10,6 +11,11 @@ import (
 )
 
 const day int = 5
+
+type SeedRange struct {
+	Start int
+	End   int
+}
 
 type ConversionRange struct {
 	SourceStart int
@@ -22,39 +28,101 @@ func main() {
 	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
-
-	seedRanges := []string{"1263068588 44436703", "1116624626 2393304", "2098781025 128251971", "2946842531 102775703", "2361566863 262106125", "221434439 24088025", "1368516778 69719147", "3326254382 101094138", "1576631370 357411492", "3713929839 154258863"}
-	for i, sr := range seedRanges {
-		parts := strings.Fields(sr)
-		fmt.Printf("%v .. %v (%v)\n", parts[0], util.MustAtoi(parts[0])+util.MustAtoi(parts[1])-1, i+1)
-	}
 }
 
 func part1(input []string) {
 	seeds, conversionSteps, conversionMaps := parseInput(input)
 	locations := []int{}
 	for _, seed := range seeds {
-		src := seed
-		for _, cs := range conversionSteps {
-			result := convert(src, conversionMaps[cs])
-			//fmt.Printf("\t%v: %v -> %v\n", cs, src, result)
-			src = result
-		}
-		locations = append(locations, src)
+		locations = append(locations, locateSeed(seed, conversionSteps, conversionMaps))
 	}
 	fmt.Printf("Part 1: %v\n", slices.Min(locations))
 }
 
 func part2(input []string) {
+	seeds, conversionSteps, conversionMaps := parseInput(input)
+	seedRanges := buildSeedRanges(seeds)
+
+	// determine the location start and end seed in each range, and use the minimum location as a ceiling for reverse lookups
+	maxLocation := math.MaxInt64
+	for _, seedRange := range seedRanges {
+		startSeedLocation := locateSeed(seedRange.Start, conversionSteps, conversionMaps)
+		endSeedLocation := locateSeed(seedRange.End, conversionSteps, conversionMaps)
+		maxLocation = slices.Min([]int{maxLocation, startSeedLocation, endSeedLocation})
+	}
+
+	// reverse conversion steps
+	for i, j := 0, len(conversionSteps)-1; i < j; i, j = i+1, j-1 {
+		conversionSteps[i], conversionSteps[j] = conversionSteps[j], conversionSteps[i]
+	}
+
+	// deconvert from locations until we find a seed in the input
+	for location := 0; location < maxLocation; location++ {
+		seed := seedLocation(location, conversionSteps, conversionMaps)
+		for _, seedRange := range seedRanges {
+			if seed >= seedRange.Start && seed <= seedRange.End {
+				fmt.Printf("Part 2: %v\n", location)
+				return
+			}
+		}
+	}
+}
+
+func locateSeed(seed int, conversionSteps []string, conversionMaps map[string][]ConversionRange) int {
+	src := seed
+	//fmt.Printf("[locateSeed] Seed %v\n", seed)
+	for _, step := range conversionSteps {
+		result := convert(src, conversionMaps[step])
+		//fmt.Printf("[locateSeed]\t%v: %v -> %v\n", step, src, result)
+		src = result
+	}
+	return src
+}
+
+func seedLocation(location int, conversionSteps []string, conversionMaps map[string][]ConversionRange) int {
+	src := location
+	//fmt.Printf("[seedLocation] Location %v\n", location)
+	for _, step := range conversionSteps {
+		result := deconvert(src, conversionMaps[step])
+		//fmt.Printf("[seedLocation]\t%v: %v -> %v\n", step, src, result)
+		src = result
+	}
+	return src
 }
 
 func convert(src int, conversionRanges []ConversionRange) int {
 	for _, conversionRange := range conversionRanges {
-		if src >= conversionRange.SourceStart && src < conversionRange.SourceStart+conversionRange.Length {
-			return src + (conversionRange.DestStart - conversionRange.SourceStart)
+		converted, ok := tryConvert(src, conversionRange)
+		if ok {
+			return converted
 		}
 	}
 	return src
+}
+
+func deconvert(src int, conversionRanges []ConversionRange) int {
+	for _, conversionRange := range conversionRanges {
+		converted, ok := tryConvert(src, ConversionRange{conversionRange.DestStart, conversionRange.SourceStart, conversionRange.Length})
+		if ok {
+			return converted
+		}
+	}
+	return src
+}
+
+func tryConvert(src int, conversionRange ConversionRange) (int, bool) {
+	if src >= conversionRange.SourceStart && src < conversionRange.SourceStart+conversionRange.Length {
+		return src + (conversionRange.DestStart - conversionRange.SourceStart), true
+	}
+	return src, false
+}
+
+func buildSeedRanges(seeds []int) []SeedRange {
+	seedRanges := []SeedRange{}
+	for i := 0; i < len(seeds); i += 2 {
+		seedRanges = append(seedRanges, SeedRange{seeds[i], seeds[i] + seeds[i+1]})
+	}
+	return seedRanges
 }
 
 func parseInput(input []string) ([]int, []string, map[string][]ConversionRange) {
