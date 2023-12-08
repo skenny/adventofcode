@@ -42,23 +42,17 @@ func part2(input []string) {
 }
 
 func walkAllPaths(inputMap Map, startSuffix string, endSuffix string) int {
-	currentElements := []string{}
+	pathStepCounts := []int{}
 	for _, element := range maps.Keys(inputMap.Network) {
 		if strings.HasSuffix(element, startSuffix) {
-			currentElements = append(currentElements, element)
+			pathStepCounts = append(pathStepCounts, walkPath(inputMap, element, "Z"))
 		}
 	}
-
-	pathSteps := util.MapSlice(currentElements, func(startElem string) int {
-		return walkPath(inputMap, startElem, "Z")
-	})
-
-	steps := 1
-	for _, path := range pathSteps {
-		steps = (steps * path) / gcd(steps, path)
+	totalSteps := 1
+	for _, pathStepCount := range pathStepCounts {
+		totalSteps = (totalSteps * pathStepCount) / gcd(totalSteps, pathStepCount)
 	}
-
-	return steps
+	return totalSteps
 }
 
 func walkPath(inputMap Map, start string, endSuffix string) int {
