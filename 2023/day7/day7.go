@@ -17,8 +17,6 @@ type Hand struct {
 	Wager int
 }
 
-var Cards = strings.Split("AKQJT98765432J", "")
-
 const FIVE_OF_A_KIND = 1
 const FOUR_OF_A_KIND = 2
 const FULL_HOUSE = 3
@@ -45,14 +43,16 @@ func test() {
 
 func part1(input []string) {
 	const jokersAreWild = false
+	var cardOrder = strings.Split("AKQJT98765432", "")
 	hands := parseInput(input)
-	fmt.Printf("Part 1: %v\n", calculateTotalWinnings(hands, jokersAreWild))
+	fmt.Printf("Part 1: %v\n", calculateTotalWinnings(hands, cardOrder, jokersAreWild))
 }
 
 func part2(input []string) {
 	const jokersAreWild = true
+	var cardOrder = strings.Split("AKQT98765432J", "")
 	hands := parseInput(input)
-	fmt.Printf("Part 2: %v\n", calculateTotalWinnings(hands, jokersAreWild))
+	fmt.Printf("Part 2: %v\n", calculateTotalWinnings(hands, cardOrder, jokersAreWild))
 }
 
 func parseInput(input []string) []Hand {
@@ -66,8 +66,8 @@ func parseInput(input []string) []Hand {
 	return hands
 }
 
-func calculateTotalWinnings(hands []Hand, jokersAreWild bool) int {
-	sortedHands := sortHands(hands, jokersAreWild)
+func calculateTotalWinnings(hands []Hand, cardOrder []string, jokersAreWild bool) int {
+	sortedHands := sortHands(hands, cardOrder, jokersAreWild)
 	numHands := len(sortedHands)
 	totalWinnings := 0
 	for i, hand := range sortedHands {
@@ -76,7 +76,7 @@ func calculateTotalWinnings(hands []Hand, jokersAreWild bool) int {
 	return totalWinnings
 }
 
-func sortHands(hands []Hand, jokersAreWild bool) []Hand {
+func sortHands(hands []Hand, cardOrder []string, jokersAreWild bool) []Hand {
 	sort.Slice(hands, func(i, j int) bool {
 		hand1 := hands[i]
 		hand2 := hands[j]
@@ -89,8 +89,8 @@ func sortHands(hands []Hand, jokersAreWild bool) []Hand {
 
 		// tie breaker
 		for i := 0; i < len(hand1.Cards); i++ {
-			card1Rank := slices.Index(Cards, hand1.Cards[i])
-			card2Rank := slices.Index(Cards, hand2.Cards[i])
+			card1Rank := slices.Index(cardOrder, hand1.Cards[i])
+			card2Rank := slices.Index(cardOrder, hand2.Cards[i])
 			if card1Rank != card2Rank {
 				return card1Rank < card2Rank
 			}
@@ -127,15 +127,23 @@ func scoreHand(hand Hand, jokersAreWild bool) int {
 		fourOfAKind := countValues[0] == 1 && countValues[1] == 4
 		fullHouse := countValues[0] == 2 && countValues[1] == 3
 
-		if jokers > 0 {
-			return FIVE_OF_A_KIND
-		}
-
 		if fourOfAKind {
+			if jokers == 4 {
+				return FIVE_OF_A_KIND
+			}
+			if jokers == 1 {
+				return FIVE_OF_A_KIND
+			}
 			return FOUR_OF_A_KIND
 		}
 
 		if fullHouse {
+			if jokers == 3 {
+				return FIVE_OF_A_KIND
+			}
+			if jokers == 2 {
+				return FIVE_OF_A_KIND
+			}
 			return FULL_HOUSE
 		}
 
@@ -185,7 +193,7 @@ func scoreHand(hand Hand, jokersAreWild bool) int {
 		}
 		return HIGH_CARD
 	default:
-		panic(fmt.Sprintf("hand score is 0: %v", hand))
+		panic(fmt.Sprintf("unexpected cards %v", hand.Cards))
 	}
 
 }
