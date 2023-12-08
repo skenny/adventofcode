@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/skenny/adventofcode/2023/util"
+	"golang.org/x/exp/maps"
 )
 
 const day int = 8
@@ -21,7 +22,7 @@ type Map struct {
 	Network      map[string]Node
 }
 
-var NODE_PATTERN = regexp.MustCompile(`^([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)$`)
+var NODE_PATTERN = regexp.MustCompile(`^([A-Z0-9]{3}) = \(([A-Z0-9]{3}), ([A-Z0-9]{3})\)$`)
 
 func main() {
 	fmt.Printf("Day %v\n", day)
@@ -32,29 +33,51 @@ func main() {
 
 func part1(input []string) {
 	inputMap := parseInput(input)
-	fmt.Printf("Part 1: %v\n", countSteps(inputMap, "AAA", "ZZZ"))
+	fmt.Printf("Part 1: %v\n", walkPath(inputMap, "AAA", "ZZZ"))
 }
 
 func part2(input []string) {
+	inputMap := parseInput(input)
+	fmt.Printf("Part 2: %v\n", walkAllPaths(inputMap, "A", "Z"))
 }
 
-func countSteps(inputMap Map, start string, end string) int {
-	steps := 0
+func walkAllPaths(inputMap Map, startSuffix string, endSuffix string) int {
+	currentElements := []string{}
+	for _, element := range maps.Keys(inputMap.Network) {
+		if strings.HasSuffix(element, startSuffix) {
+			currentElements = append(currentElements, element)
+		}
+	}
+
+	pathSteps := util.MapSlice(currentElements, func(startElem string) int {
+		return walkPath(inputMap, startElem, "Z")
+	})
+
+	steps := 1
+	for _, path := range pathSteps {
+		steps = (steps * path) / gcd(steps, path)
+	}
+
+	return steps
+}
+
+func walkPath(inputMap Map, start string, endSuffix string) int {
 	instructionCount := len(inputMap.Instructions)
-	current := start
+	steps := 0
+	currentElement := start
 	for {
-		if current == end {
+		if strings.HasSuffix(currentElement, endSuffix) {
 			break
 		}
 
-		node := inputMap.Network[current]
+		elementNode := inputMap.Network[currentElement]
 		nextInstruction := inputMap.Instructions[steps%instructionCount]
 
 		switch nextInstruction {
 		case "L":
-			current = node.Left
+			currentElement = elementNode.Left
 		case "R":
-			current = node.Right
+			currentElement = elementNode.Right
 		default:
 			panic(fmt.Sprintf("unexpected instruction %v", nextInstruction))
 		}
@@ -69,8 +92,18 @@ func parseInput(input []string) Map {
 	network := make(map[string]Node)
 	for _, nodeDesc := range input[2:] {
 		nodePatternMatches := NODE_PATTERN.FindStringSubmatch(nodeDesc)
+		if len(nodePatternMatches) == 0 {
+			panic(fmt.Sprintf("input line doesn't match node pattern: %v", nodeDesc))
+		}
 		element, left, right := nodePatternMatches[1], nodePatternMatches[2], nodePatternMatches[3]
 		network[element] = Node{element, left, right}
 	}
 	return Map{instructions, network}
+}
+
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
 }
