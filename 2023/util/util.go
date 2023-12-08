@@ -17,6 +17,11 @@ func ReadTestInput(day int) []string {
 	return ReadFile(filename)
 }
 
+func ReadTestInputN(day int, num int) []string {
+	filename := fmt.Sprintf("day%v-test%v-input", day, num)
+	return ReadFile(filename)
+}
+
 func ReadFile(filename string) []string {
 	contents, err := os.ReadFile(filename)
 	if err != nil {
