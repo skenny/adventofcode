@@ -45,7 +45,7 @@ func walkAllPaths(inputMap Map, startSuffix string, endSuffix string) int {
 	pathStepCounts := []int{}
 	for _, element := range maps.Keys(inputMap.Network) {
 		if strings.HasSuffix(element, startSuffix) {
-			pathStepCounts = append(pathStepCounts, walkPath(inputMap, element, "Z"))
+			pathStepCounts = append(pathStepCounts, walkPath(inputMap, element, endSuffix))
 		}
 	}
 	totalSteps := 1
