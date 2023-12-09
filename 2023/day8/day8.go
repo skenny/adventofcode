@@ -41,10 +41,10 @@ func part2(input []string) {
 	fmt.Printf("Part 2: %v\n", walkAllPaths(inputMap, "A", "Z"))
 }
 
-func walkAllPaths(inputMap Map, startSuffix string, endSuffix string) int {
+func walkAllPaths(inputMap Map, startElement string, endSuffix string) int {
 	pathStepCounts := []int{}
 	for _, element := range maps.Keys(inputMap.Network) {
-		if strings.HasSuffix(element, startSuffix) {
+		if strings.HasSuffix(element, startElement) {
 			pathStepCounts = append(pathStepCounts, walkPath(inputMap, element, endSuffix))
 		}
 	}
@@ -55,10 +55,10 @@ func walkAllPaths(inputMap Map, startSuffix string, endSuffix string) int {
 	return totalSteps
 }
 
-func walkPath(inputMap Map, start string, endSuffix string) int {
+func walkPath(inputMap Map, startElement string, endSuffix string) int {
 	instructionCount := len(inputMap.Instructions)
 	steps := 0
-	currentElement := start
+	currentElement := startElement
 	for {
 		if strings.HasSuffix(currentElement, endSuffix) {
 			break
