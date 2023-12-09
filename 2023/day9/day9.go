@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/skenny/adventofcode/2023/util"
@@ -17,21 +18,23 @@ func main() {
 }
 
 func part1(input []string) {
-	sum := 0
-	for _, line := range input {
-		vals := util.MapSlice(strings.Fields(line), util.MustAtoi)
-		sum += nextNumber(vals)
-	}
-	fmt.Printf("Part 1: %v\n", sum)
+	fmt.Printf("Part 1: %v\n", sumNewNumbers(input, false))
 }
 
 func part2(input []string) {
+	fmt.Printf("Part 2: %v\n", sumNewNumbers(input, true))
+}
+
+func sumNewNumbers(input []string, part2 bool) int {
 	sum := 0
 	for _, line := range input {
 		vals := util.MapSlice(strings.Fields(line), util.MustAtoi)
-		sum += prevNumber(vals)
+		if part2 {
+			slices.Reverse(vals)
+		}
+		sum += nextNumber(vals)
 	}
-	fmt.Printf("Part 2: %v\n", sum)
+	return sum
 }
 
 func nextNumber(vals []int) int {
@@ -39,13 +42,6 @@ func nextNumber(vals []int) int {
 		return 0
 	}
 	return vals[len(vals)-1] + nextNumber(diffs(vals))
-}
-
-func prevNumber(vals []int) int {
-	if allZero(vals) {
-		return 0
-	}
-	return vals[0] - prevNumber(diffs(vals))
 }
 
 func allZero(vals []int) bool {
