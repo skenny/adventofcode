@@ -39,6 +39,22 @@ func MapSlice[T any, M any](a []T, f func(T) M) []M {
 	return n
 }
 
+func AllMatch[T any](a []T, f func(T) bool) bool {
+	all := true
+	for _, e := range a {
+		all = all && f(e)
+	}
+	return all
+}
+
+func AnyMatch[T any](a []T, f func(T) bool) bool {
+	any := false
+	for _, e := range a {
+		any = any || f(e)
+	}
+	return any
+}
+
 func ReverseString(in string) string {
 	out := ""
 	for _, c := range in {
