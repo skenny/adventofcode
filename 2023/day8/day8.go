@@ -63,22 +63,21 @@ func walkPath(inputMap Map, start string, endSuffix string) int {
 		if strings.HasSuffix(currentElement, endSuffix) {
 			break
 		}
-
-		elementNode := inputMap.Network[currentElement]
-		nextInstruction := inputMap.Instructions[steps%instructionCount]
-
-		switch nextInstruction {
-		case "L":
-			currentElement = elementNode.Left
-		case "R":
-			currentElement = elementNode.Right
-		default:
-			panic(fmt.Sprintf("unexpected instruction %v", nextInstruction))
+		if inputMap.Instructions[steps%instructionCount] == "L" {
+			currentElement = inputMap.Network[currentElement].Left
+		} else {
+			currentElement = inputMap.Network[currentElement].Right
 		}
-
 		steps += 1
 	}
 	return steps
+}
+
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
 }
 
 func parseInput(input []string) Map {
@@ -93,11 +92,4 @@ func parseInput(input []string) Map {
 		network[element] = Node{element, left, right}
 	}
 	return Map{instructions, network}
-}
-
-func gcd(a, b int) int {
-	if b == 0 {
-		return a
-	}
-	return gcd(b, a%b)
 }
