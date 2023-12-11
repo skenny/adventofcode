@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"slices"
 	"strings"
 
 	"github.com/skenny/adventofcode/2023/util"
@@ -30,18 +29,46 @@ func main() {
 
 func part1(input []string) {
 	grid := parseInput(input)
-	expanded := expand(grid)
-	galaxies := findGalaxies(expanded)
+	fmt.Printf("Part 1: %v\n", findShortestDistances(grid, 2))
+}
+
+func part2(input []string) {
+	grid := parseInput(input)
+	fmt.Printf("Part 2: %v\n", findShortestDistances(grid, 1000000))
+}
+
+func findShortestDistances(grid [][]string, expansionAmount int) int {
+	emptyRows, emptyCols := findEmptyRowsAndCols(grid)
+	galaxies := findGalaxies(grid)
 	galaxyPairs := findGalaxyPairs(galaxies)
 	shortestDistances := util.MapSlice(galaxyPairs, func(galaxyPair VertexPair) int {
 		xDistance := int(math.Abs(float64(galaxyPair.Vertex2.X - galaxyPair.Vertex1.X)))
 		yDistance := int(math.Abs(float64(galaxyPair.Vertex2.Y - galaxyPair.Vertex1.Y)))
-		return xDistance + yDistance
-	})
-	fmt.Printf("Part 1: %v", util.SumInts(shortestDistances))
-}
 
-func part2(input []string) {
+		// for each vertex pair, count the number of empty rows and cols between them, and add in the expansion distance factor for each dimension
+
+		minX := int(math.Min(float64(galaxyPair.Vertex1.X), float64(galaxyPair.Vertex2.X)))
+		maxX := int(math.Max(float64(galaxyPair.Vertex1.X), float64(galaxyPair.Vertex2.X)))
+		xExpansionFactor := 0
+		for _, x := range emptyCols {
+			if x >= minX && x <= maxX {
+				xExpansionFactor += 1
+			}
+		}
+
+		minY := int(math.Min(float64(galaxyPair.Vertex1.Y), float64(galaxyPair.Vertex2.Y)))
+		maxY := int(math.Max(float64(galaxyPair.Vertex1.Y), float64(galaxyPair.Vertex2.Y)))
+		yExpansionFactor := 0
+		for _, y := range emptyRows {
+			if y >= minY && y <= maxY {
+				yExpansionFactor += 1
+			}
+		}
+
+		return xDistance + (xExpansionFactor * (expansionAmount - 1)) + yDistance + (yExpansionFactor * (expansionAmount - 1))
+	})
+
+	return util.SumInts(shortestDistances)
 }
 
 func findGalaxyPairs(galaxies []Vertex) []VertexPair {
@@ -66,7 +93,14 @@ func findGalaxies(grid [][]string) []Vertex {
 	return galaxies
 }
 
-func expand(grid [][]string) [][]string {
+func findEmptyRowsAndCols(grid [][]string) (rows []int, cols []int) {
+	emptyRows := []int{}
+	for y := 0; y < len(grid); y++ {
+		if isRowEmpty(y, grid) {
+			emptyRows = append(emptyRows, y)
+		}
+	}
+
 	emptyCols := []int{}
 	for x := 0; x < len(grid[0]); x++ {
 		if isColEmpty(x, grid) {
@@ -74,23 +108,7 @@ func expand(grid [][]string) [][]string {
 		}
 	}
 
-	expanded := [][]string{}
-	for y, row := range grid {
-		newRow := []string{}
-		for x, cell := range row {
-			newRow = append(newRow, cell)
-			if slices.Contains(emptyCols, x) {
-				newRow = append(newRow, cell)
-			}
-		}
-
-		expanded = append(expanded, newRow)
-		if isRowEmpty(y, grid) {
-			expanded = append(expanded, newRow)
-		}
-	}
-
-	return expanded
+	return emptyRows, emptyCols
 }
 
 func isRowEmpty(row int, grid [][]string) bool {
@@ -107,12 +125,6 @@ func isColEmpty(col int, grid [][]string) bool {
 		colIsEmpty = colIsEmpty && row[col] == "."
 	}
 	return colIsEmpty
-}
-
-func rasterize(grid [][]string) {
-	for _, row := range grid {
-		fmt.Println(strings.Join(row, ""))
-	}
 }
 
 func parseInput(input []string) [][]string {
