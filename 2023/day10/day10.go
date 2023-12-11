@@ -39,7 +39,9 @@ type Tile struct {
 }
 
 type Field struct {
-	Tiles map[Vertex]Tile
+	Tiles  map[Vertex]Tile
+	Width  int
+	Height int
 }
 
 func (t Tile) IsPipe() bool {
@@ -129,5 +131,5 @@ func parseInput(input []string) (Field, Vertex) {
 			tileMap[vertex] = Tile{vertex, tile}
 		}
 	}
-	return Field{tileMap}, startVertex
+	return Field{tileMap, len(input[0]), len(input)}, startVertex
 }
