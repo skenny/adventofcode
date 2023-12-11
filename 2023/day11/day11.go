@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 
@@ -10,9 +11,19 @@ import (
 
 const day int = 11
 
+type Vertex struct {
+	X int
+	Y int
+}
+
+type VertexPair struct {
+	Vertex1 Vertex
+	Vertex2 Vertex
+}
+
 func main() {
 	fmt.Printf("Day %v\n", day)
-	input := util.ReadTestInput(day)
+	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
 }
@@ -20,10 +31,39 @@ func main() {
 func part1(input []string) {
 	grid := parseInput(input)
 	expanded := expand(grid)
-
+	galaxies := findGalaxies(expanded)
+	galaxyPairs := findGalaxyPairs(galaxies)
+	shortestDistances := util.MapSlice(galaxyPairs, func(galaxyPair VertexPair) int {
+		xDistance := int(math.Abs(float64(galaxyPair.Vertex2.X - galaxyPair.Vertex1.X)))
+		yDistance := int(math.Abs(float64(galaxyPair.Vertex2.Y - galaxyPair.Vertex1.Y)))
+		return xDistance + yDistance
+	})
+	fmt.Printf("Part 1: %v", util.SumInts(shortestDistances))
 }
 
 func part2(input []string) {
+}
+
+func findGalaxyPairs(galaxies []Vertex) []VertexPair {
+	galaxyPairs := []VertexPair{}
+	for i := 0; i < len(galaxies); i++ {
+		for j := i + 1; j < len(galaxies); j++ {
+			galaxyPairs = append(galaxyPairs, VertexPair{galaxies[i], galaxies[j]})
+		}
+	}
+	return galaxyPairs
+}
+
+func findGalaxies(grid [][]string) []Vertex {
+	galaxies := []Vertex{}
+	for y, row := range grid {
+		for x, cell := range row {
+			if cell == "#" {
+				galaxies = append(galaxies, Vertex{x, y})
+			}
+		}
+	}
+	return galaxies
 }
 
 func expand(grid [][]string) [][]string {
