@@ -18,7 +18,7 @@ def crack_geodes(blueprint, time_allowed=24)
     finished_paths = Set.new()
     minute = 0
 
-    max_orebots_needed = [blueprint.ore_robot_ore_cost, blueprint.obsidian_robot_ore_cost, blueprint.geode_robot_ore_cost].max
+    max_orebots_needed = [blueprint.ore_robot_ore_cost, blueprint.clay_robot_ore_cost, blueprint.obsidian_robot_ore_cost, blueprint.geode_robot_ore_cost].max
     max_claybots_needed = blueprint.obsidian_robot_clay_cost
     max_obsidibots_needed = blueprint.geode_robot_obsidian_cost
 
