@@ -54,19 +54,21 @@ func solveTheUniverse(grid [][]string, expandBy int) int {
 }
 
 func rowEmpty(row int, grid [][]string) bool {
-	rowIsEmpty := true
 	for _, cell := range grid[row] {
-		rowIsEmpty = rowIsEmpty && cell == "."
+		if cell != "." {
+			return false
+		}
 	}
-	return rowIsEmpty
+	return true
 }
 
 func colEmpty(col int, grid [][]string) bool {
-	colIsEmpty := true
 	for _, row := range grid {
-		colIsEmpty = colIsEmpty && row[col] == "."
+		if row[col] != "." {
+			return false
+		}
 	}
-	return colIsEmpty
+	return true
 }
 
 func countInRange(vals []int, min, max int) int {
