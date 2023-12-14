@@ -23,7 +23,7 @@ func (p Pattern) rasterize() {
 func main() {
 	fmt.Printf("Day %v\n", day)
 	input := util.ReadInput(day)
-	//part1(input)
+	part1(input)
 	part2(input)
 }
 
@@ -35,48 +35,46 @@ func part1(input []string) {
 func part2(input []string) {
 	patterns := parseInput(input)
 	fmt.Printf("Part 2: %v\n", summarize(patterns, 1))
-	// 38286 is too high
-	// 37972 is too low
 }
 
-func summarize(patterns []Pattern, smudgeAmount int) int {
-	lefts := 0
-	aboves := 0
+func summarize(patterns []Pattern, expectedSmudge int) int {
+	cols := 0
+	rows := 0
 	for i, pattern := range patterns {
 		//pattern.rasterize()
-		h1, hfound := findMirror(pattern.Rows, smudgeAmount)
-		if hfound {
-			aboves += h1 + 1
+		ih, foundHorizontal := findMirror(pattern.Rows, expectedSmudge)
+		if foundHorizontal {
+			rows += ih + 1
 		} else {
-			v1, vfound := findMirror(pattern.Cols, smudgeAmount)
-			if vfound {
-				lefts += v1 + 1
+			iv, foundVertical := findMirror(pattern.Cols, expectedSmudge)
+			if foundVertical {
+				cols += iv + 1
 			} else {
 				panic(fmt.Sprintf("no mirror found in pattern %v", i))
 			}
 		}
 	}
-	return lefts + (aboves * 100)
+	return cols + (rows * 100)
 }
 
-func findMirror(lines []string, smudgeAmount int) (int, bool) {
+func findMirror(lines []string, expectedSmudge int) (int, bool) {
 	for i := 0; i < len(lines)-1; i++ {
 		left := lines[i]
 		right := lines[i+1]
-		smudges := difference(left, right)
-		if smudges <= smudgeAmount {
+		smudge := difference(left, right)
+		if smudge <= expectedSmudge {
 			for x := 1; x < len(lines); x++ {
 				lx := i - x
 				lr := i + 1 + x
 				if lx >= 0 && lr < len(lines) {
 					left = lines[lx]
 					right = lines[lr]
-					smudges += difference(left, right)
-					if smudges > smudgeAmount {
+					smudge += difference(left, right)
+					if smudge > expectedSmudge {
 						// no match, not the mirror line
 						break
 					}
-				} else if smudges == smudgeAmount {
+				} else if smudge == expectedSmudge {
 					// out of bounds... must be the mirror line
 					return i, true
 				}
