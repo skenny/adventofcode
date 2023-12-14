@@ -19,22 +19,33 @@ func main() {
 
 func part1(input []string) {
 	columns := parseColumns(input)
-	fmt.Printf("Part 1: %v\n", util.SumInts(util.MapSlice(columns, func(column string) int { return calculateLoad(tilt(column)) })))
+	fmt.Printf("Part 1: %v\n", calculateTotalLoad(fullTilt(columns)))
 }
 
 func part2(input []string) {
 	columns := parseColumns(input)
 	cycles := 1_000_000_000
+	cache := make(map[string]int)
 	for cycle := 0; cycle < cycles; cycle++ {
 		for rotations := 0; rotations < 4; rotations++ {
-			columns = rotateClockwise(util.MapSlice(columns, tilt))
+			columns = rotateClockwise(fullTilt(columns))
 		}
+		cacheKey := strings.Join(columns, "")
+		cachedLoad, cached := cache[cacheKey]
+		if cached {
+			fmt.Printf("Found a repeat after cycle %v, with load %v!\n", cycle, cachedLoad)
+			// TODO ...
+			break
+		} else {
+			cache[cacheKey] = calculateTotalLoad(columns)
+		}
+
 		if cycle%100_000 == 0 {
 			fmt.Printf("After cycle %v:\n", cycle)
 			rasterize(columns)
 		}
 	}
-	fmt.Printf("Part 2: %v\n", util.SumInts(util.MapSlice(columns, func(column string) int { return calculateLoad(column) })))
+	fmt.Printf("Part 2: %v\n", calculateTotalLoad(columns))
 }
 
 func rasterize(columns []string) {
@@ -57,7 +68,11 @@ func rotateClockwise(columns []string) []string {
 	return parseColumns(newRows)
 }
 
-func calculateLoad(column string) int {
+func calculateTotalLoad(columns []string) int {
+	return util.SumInts(util.MapSlice(columns, calculateColumnLoad))
+}
+
+func calculateColumnLoad(column string) int {
 	rowCount := len(column)
 	load := 0
 	for i, c := range column {
@@ -66,6 +81,10 @@ func calculateLoad(column string) int {
 		}
 	}
 	return load
+}
+
+func fullTilt(columns []string) []string {
+	return util.MapSlice(columns, tilt)
 }
 
 func tilt(column string) string {
