@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/skenny/adventofcode/2023/util"
 )
@@ -24,31 +24,37 @@ func part1(input []string) {
 
 func part2(input []string) {
 	columns := parseColumns(input)
-	for i := 0; i < 1_000_000_000; i++ {
-		debug := i%100_000 == 0
-		if debug {
-			fmt.Printf("pass %v\n", i)
+	cycles := 1_000_000_000
+	for cycle := 0; cycle < cycles; cycle++ {
+		for rotations := 0; rotations < 4; rotations++ {
+			columns = rotateClockwise(util.MapSlice(columns, tilt))
 		}
-		for j := 0; j < 4; j++ {
-			columns = rotateCounterclockwise(util.MapSlice(columns, func(column string) string { return tilt(column) }))
+		if cycle%100_000 == 0 {
+			fmt.Printf("After cycle %v:\n", cycle)
+			rasterize(columns)
 		}
 	}
 	fmt.Printf("Part 2: %v\n", util.SumInts(util.MapSlice(columns, func(column string) int { return calculateLoad(column) })))
 }
 
-func rotateCounterclockwise(columns []string) []string {
-	return util.MapSlice(columns, rotate)
+func rasterize(columns []string) {
+	for r := 0; r < len(columns); r++ {
+		row := []byte{}
+		for _, column := range columns {
+			row = append(row, column[r])
+		}
+		fmt.Println(string(row))
+	}
 }
 
-func rotate(column string) string {
-	size := len(column)
-	buf := make([]byte, size)
-	for start := 0; start < size; {
-		r, n := utf8.DecodeRuneInString(column[start:])
-		start += n
-		utf8.EncodeRune(buf[size-start:], r)
+func rotateClockwise(columns []string) []string {
+	newRows := []string{}
+	for _, column := range columns {
+		split := strings.Split(column, "")
+		slices.Reverse(split)
+		newRows = append(newRows, strings.Join(split, ""))
 	}
-	return string(buf)
+	return parseColumns(newRows)
 }
 
 func calculateLoad(column string) int {
