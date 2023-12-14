@@ -12,7 +12,7 @@ const day int = 14
 
 func main() {
 	fmt.Printf("Day %v\n", day)
-	input := util.ReadTestInput(day)
+	input := util.ReadInput(day)
 	part1(input)
 	part2(input)
 }
@@ -25,37 +25,24 @@ func part1(input []string) {
 func part2(input []string) {
 	columns := parseColumns(input)
 	cycles := 1_000_000_000
+	cycle := 0
 	cache := make(map[string]int)
-	for cycle := 0; cycle < cycles; cycle++ {
+	jumped := false
+	for cycle < cycles {
 		for rotations := 0; rotations < 4; rotations++ {
 			columns = rotateClockwise(fullTilt(columns))
 		}
+		cycle += 1
 		cacheKey := strings.Join(columns, "")
-		cachedLoad, cached := cache[cacheKey]
-		if cached {
-			fmt.Printf("Found a repeat after cycle %v, with load %v!\n", cycle, cachedLoad)
-			// TODO ...
-			break
-		} else {
-			cache[cacheKey] = calculateTotalLoad(columns)
+		seenAtCycle, seen := cache[cacheKey]
+		if seen && !jumped {
+			period := cycle - seenAtCycle
+			cycle = cycles - ((cycles - seenAtCycle) % period)
+			jumped = true
 		}
-
-		if cycle%100_000 == 0 {
-			fmt.Printf("After cycle %v:\n", cycle)
-			rasterize(columns)
-		}
+		cache[cacheKey] = cycle
 	}
 	fmt.Printf("Part 2: %v\n", calculateTotalLoad(columns))
-}
-
-func rasterize(columns []string) {
-	for r := 0; r < len(columns); r++ {
-		row := []byte{}
-		for _, column := range columns {
-			row = append(row, column[r])
-		}
-		fmt.Println(string(row))
-	}
 }
 
 func rotateClockwise(columns []string) []string {
