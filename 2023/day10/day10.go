@@ -16,7 +16,14 @@ const EAST = 1
 const SOUTH = 2
 const WEST = 3
 
-var Pipes = []string{"|", "-", "L", "J", "7", "F"}
+var Pipes = map[string]string{
+	"|": "|",
+	"-": "-",
+	"L": "└",
+	"J": "┘",
+	"7": "┐",
+	"F": "┌",
+}
 
 var PipeConnections = map[string][]bool{
 	//     N      E      S      W
@@ -39,13 +46,15 @@ type Tile struct {
 }
 
 type Field struct {
+	Lines  []string
 	Tiles  map[Vertex]Tile
 	Width  int
 	Height int
 }
 
 func (t Tile) IsPipe() bool {
-	return slices.Contains(Pipes, t.Type)
+	_, yep := Pipes[t.Type]
+	return yep
 }
 
 func (f Field) TileAt(v Vertex) Tile {
@@ -54,6 +63,15 @@ func (f Field) TileAt(v Vertex) Tile {
 		return Tile{v, "."}
 	}
 	return tile
+}
+
+func (f Field) Rasterize() {
+	for _, line := range f.Lines {
+		for pipe, glyph := range Pipes {
+			line = strings.Replace(line, pipe, glyph, -1)
+		}
+		fmt.Println(line)
+	}
 }
 
 func main() {
@@ -65,6 +83,7 @@ func main() {
 
 func part1(input []string) {
 	field, startVertex := parseInput(input)
+	field.Rasterize()
 	fmt.Printf("Part 1: %v", walk(field, startVertex))
 }
 
@@ -131,5 +150,5 @@ func parseInput(input []string) (Field, Vertex) {
 			tileMap[vertex] = Tile{vertex, tile}
 		}
 	}
-	return Field{tileMap, len(input[0]), len(input)}, startVertex
+	return Field{input, tileMap, len(input[0]), len(input)}, startVertex
 }
