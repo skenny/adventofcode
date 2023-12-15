@@ -33,6 +33,7 @@ var PipeConnections = map[string][]bool{
 	"J": {true, false, false, true},
 	"7": {false, false, true, true},
 	"F": {false, true, true, false},
+	"S": {true, true, true, true},
 }
 
 type Vertex struct {
@@ -46,32 +47,113 @@ type Tile struct {
 }
 
 type Field struct {
-	Lines  []string
 	Tiles  map[Vertex]Tile
 	Width  int
 	Height int
+	Start  Tile
 }
 
-func (t Tile) IsPipe() bool {
-	_, yep := Pipes[t.Type]
+func (tile Tile) IsPipe() bool {
+	_, yep := Pipes[tile.Type]
 	return yep
 }
 
-func (f Field) TileAt(v Vertex) Tile {
-	tile, ok := f.Tiles[v]
+func (field Field) TileAt(v Vertex) Tile {
+	tile, ok := field.Tiles[v]
 	if !ok {
-		return Tile{v, "."}
+		return Tile{v, ""}
 	}
 	return tile
 }
 
-func (f Field) Rasterize() {
-	for _, line := range f.Lines {
-		for pipe, glyph := range Pipes {
-			line = strings.Replace(line, pipe, glyph, -1)
+func (field Field) ConnectedNeighbours(tile Tile) []Tile {
+	connectedTiles := []Tile{}
+
+	vertex := tile.Vertex
+	connectedDirections := PipeConnections[tile.Type]
+
+	if connectedDirections[NORTH] {
+		north := field.TileAt(Vertex{vertex.X, vertex.Y - 1})
+		if north.IsPipe() && PipeConnections[north.Type][SOUTH] {
+			connectedTiles = append(connectedTiles, north)
 		}
-		fmt.Println(line)
 	}
+
+	if connectedDirections[EAST] {
+		east := field.TileAt(Vertex{vertex.X + 1, vertex.Y})
+		if east.IsPipe() && PipeConnections[east.Type][WEST] {
+			connectedTiles = append(connectedTiles, east)
+		}
+	}
+
+	if connectedDirections[SOUTH] {
+		south := field.TileAt(Vertex{vertex.X, vertex.Y + 1})
+		if south.IsPipe() && PipeConnections[south.Type][NORTH] {
+			connectedTiles = append(connectedTiles, south)
+		}
+	}
+
+	if connectedDirections[WEST] {
+		west := field.TileAt(Vertex{vertex.X - 1, vertex.Y})
+		if west.IsPipe() && PipeConnections[west.Type][EAST] {
+			connectedTiles = append(connectedTiles, west)
+		}
+	}
+
+	return connectedTiles
+}
+
+func (field Field) Rasterize() {
+	for y := 0; y < field.Height; y++ {
+		for x := 0; x < field.Width; x++ {
+			tile := field.TileAt(Vertex{x, y})
+			out := tile.Type
+			glyph, ok := Pipes[out]
+			if ok {
+				out = glyph
+			}
+			fmt.Print(out)
+		}
+		fmt.Println()
+	}
+}
+
+func (field Field) Walk() map[Vertex]int {
+	visited := map[Vertex]int{
+		field.Start.Vertex: 0,
+	}
+	neighbours := field.ConnectedNeighbours(field.Start)
+	steps := 0
+	for {
+		if len(neighbours) == 0 {
+			break
+		}
+		steps += 1
+		newNeighbours := []Tile{}
+		for _, neighbour := range neighbours {
+			_, alreadyVisited := visited[neighbour.Vertex]
+			if !alreadyVisited {
+				visited[neighbour.Vertex] = steps
+				newNeighbours = append(newNeighbours, field.ConnectedNeighbours(neighbour)...)
+			}
+		}
+		neighbours = newNeighbours
+	}
+	return visited
+}
+
+func (field Field) Flood() {
+	visited := field.Walk()
+	for y := 0; y < field.Height; y++ {
+		for x := 0; x < field.Width; x++ {
+			v := Vertex{x, y}
+			_, reachable := visited[v]
+			if !reachable {
+				field.Tiles[v] = Tile{v, "."}
+			}
+		}
+	}
+	field.Rasterize()
 }
 
 func main() {
@@ -82,63 +164,18 @@ func main() {
 }
 
 func part1(input []string) {
-	field, startVertex := parseInput(input)
-	field.Rasterize()
-	fmt.Printf("Part 1: %v", walk(field, startVertex))
+	field := parseInput(input)
+	visited := field.Walk()
+	mostStepsAway := slices.Max(maps.Values(visited))
+	fmt.Printf("Part 1: %v\n", mostStepsAway)
 }
 
 func part2(input []string) {
+	field := parseInput(input)
+	field.Flood()
 }
 
-func walk(field Field, startVertex Vertex) int {
-	dists := make(map[Vertex]int)
-	dists[startVertex] = 0
-
-	neighbours := connectedNeighbours(field, startVertex)
-	dist := 0
-
-	for {
-		if len(neighbours) == 0 {
-			break
-		}
-		dist += 1
-		newNeighbours := []Tile{}
-		for _, neighbour := range neighbours {
-			_, ok := dists[neighbour.Vertex]
-			if !ok {
-				dists[neighbour.Vertex] = dist
-				newNeighbours = append(newNeighbours, connectedNeighbours(field, neighbour.Vertex)...)
-			}
-		}
-		neighbours = newNeighbours
-	}
-
-	return slices.Max(maps.Values(dists))
-}
-
-func connectedNeighbours(field Field, vertex Vertex) []Tile {
-	north := field.TileAt(Vertex{vertex.X, vertex.Y - 1})
-	east := field.TileAt(Vertex{vertex.X + 1, vertex.Y})
-	south := field.TileAt(Vertex{vertex.X, vertex.Y + 1})
-	west := field.TileAt(Vertex{vertex.X - 1, vertex.Y})
-
-	connectedTiles := []Tile{}
-	if north.IsPipe() && PipeConnections[north.Type][SOUTH] {
-		connectedTiles = append(connectedTiles, north)
-	}
-	if east.IsPipe() && PipeConnections[east.Type][WEST] {
-		connectedTiles = append(connectedTiles, east)
-	}
-	if south.IsPipe() && PipeConnections[south.Type][NORTH] {
-		connectedTiles = append(connectedTiles, south)
-	}
-	if west.IsPipe() && PipeConnections[west.Type][EAST] {
-		connectedTiles = append(connectedTiles, west)
-	}
-	return connectedTiles
-}
-
-func parseInput(input []string) (Field, Vertex) {
+func parseInput(input []string) Field {
 	tileMap := make(map[Vertex]Tile)
 	startVertex := Vertex{0, 0}
 	for y, line := range input {
@@ -150,5 +187,5 @@ func parseInput(input []string) (Field, Vertex) {
 			tileMap[vertex] = Tile{vertex, tile}
 		}
 	}
-	return Field{input, tileMap, len(input[0]), len(input)}, startVertex
+	return Field{tileMap, len(input[0]), len(input), tileMap[startVertex]}
 }
