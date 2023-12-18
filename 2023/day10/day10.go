@@ -16,6 +16,8 @@ const EAST = 1
 const SOUTH = 2
 const WEST = 3
 
+var Vectors = []Vertex{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
+
 var Pipes = map[string]string{
 	"|": "|",
 	"-": "-",
@@ -51,6 +53,10 @@ type Field struct {
 	Width  int
 	Height int
 	Start  Tile
+}
+
+func (vertex Vertex) Shift(vector Vertex) Vertex {
+	return Vertex{vertex.X + vector.X, vertex.Y + vector.Y}
 }
 
 func (tile Tile) IsPipe() bool {
@@ -142,8 +148,10 @@ func (field Field) Walk() map[Vertex]int {
 	return visited
 }
 
-func (field Field) Flood() {
+func (field Field) Flood() int {
 	visited := field.Walk()
+
+	// prune off unreachable pipes
 	for y := 0; y < field.Height; y++ {
 		for x := 0; x < field.Width; x++ {
 			v := Vertex{x, y}
@@ -153,7 +161,24 @@ func (field Field) Flood() {
 			}
 		}
 	}
-	field.Rasterize()
+
+	inside := 0
+	for y := 0; y < field.Height; y++ {
+		edges := 0
+		for x := 0; x < field.Width; x++ {
+			v := Vertex{x, y}
+			tile := field.Tiles[v].Type
+			if tile == "F" || tile == "|" || tile == "7" {
+				edges += 1
+			} else if tile == "." {
+				if edges%2 == 1 {
+					inside += 1
+				}
+			}
+		}
+	}
+
+	return inside
 }
 
 func main() {
@@ -172,7 +197,7 @@ func part1(input []string) {
 
 func part2(input []string) {
 	field := parseInput(input)
-	field.Flood()
+	fmt.Printf("Part 2: %v\n", field.Flood())
 }
 
 func parseInput(input []string) Field {
