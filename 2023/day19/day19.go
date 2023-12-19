@@ -82,30 +82,40 @@ func part1(input []string) {
 		workflowLookup[workflow.Name] = workflow
 	}
 
-	accepted := []Part{}
+	acceptedSum := 0
 	for _, part := range parts {
-		destination := "in"
-		for {
-			destination = workflowLookup[destination].Process(part)
-			if destination == "A" {
-				accepted = append(accepted, part)
-				break
-			} else if destination == "R" {
-				// rejected - throw it away
-				break
-			}
+		if isAccepted(part, workflowLookup) {
+			acceptedSum += part.Sum()
 		}
 	}
 
-	sum := 0
-	for _, part := range accepted {
-		sum += part.Sum()
-	}
-
-	fmt.Printf("Part 1: %v\n", sum)
+	fmt.Printf("Part 1: %v\n", acceptedSum)
 }
 
 func part2(input []string) {
+	workflows, _ := parseInput(input)
+
+	// build a lookup table of workflow name -> workflows
+	workflowLookup := map[string]Workflow{}
+	for _, workflow := range workflows {
+		workflowLookup[workflow.Name] = workflow
+	}
+
+	countAccepted := 0
+	// TODO
+	fmt.Printf("Part 2: %v\n", countAccepted)
+}
+
+func isAccepted(part Part, workflowLookup map[string]Workflow) bool {
+	destination := "in"
+	for {
+		destination = workflowLookup[destination].Process(part)
+		if destination == "A" {
+			return true
+		} else if destination == "R" {
+			return false
+		}
+	}
 }
 
 func parseInput(input []string) ([]Workflow, []Part) {
