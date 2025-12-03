@@ -31,14 +31,13 @@ def part2():
             while sz > 0:
                 if id_str_len % sz == 0:
                     #print(f"\tdividing into {id_str_len // sz} chunks of size {sz}")
-                    chunks = [ id_str[i:i + sz] for i in range(0, id_str_len, sz) ]
+                    chunks = [id_str[i:i + sz] for i in range(0, id_str_len, sz)]
                     #print(f"\tgot {chunks}")
                     if len(set(chunks)) == 1:
                         #print(f"\t{id} is invalid!")
                         invalid_ids.append(id)
                         break
                 sz -= 1
-
     print(f"Part 2: {sum(invalid_ids)}")
 
 part1()
