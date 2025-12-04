@@ -31,8 +31,25 @@ def part1(grid):
                     moveable_rolls += 1
     print(f"Part 1: {moveable_rolls}")
 
-def part2():
-    print("Part 2:")
+def part2(grid):
+    grid_width = len(grid[0])
+    grid_height = len(grid)
+    moveable_rolls = 0
+    keep_trying = True
+    while keep_trying:
+        removed_in_pass = 0
+        for y in range(0, grid_height):
+            for x in range(0, grid_width):
+                contents = input[y][x]
+                if contents == '@':
+                    if is_moveable(grid, y, x):
+                        row = list(grid[y])
+                        row[x] = '.'
+                        grid[y] = "".join(row)
+                        removed_in_pass += 1
+                        moveable_rolls += 1
+        keep_trying = removed_in_pass != 0
+    print(f"Part 2: {moveable_rolls}")
 
 part1(input)
-part2()
+part2(input)
