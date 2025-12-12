@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from itertools import combinations
 from math import prod, sqrt
-from time import time_ns
 from sys import maxsize as MAX_INT
 
 @dataclass(frozen=True)
@@ -36,12 +35,9 @@ def euclidean_distance(v1: Vertex, v2: Vertex):
 
 def calculate_distances(vertices):
     vertex_pair_distances = []
-    start_ms = time_ns() // 1_000_000
     for pair in list(combinations(vertices, 2)):
         v1, v2 = pair[0], pair[1]
         vertex_pair_distances.append([v1, v2, euclidean_distance(v1, v2)])
-    end_ms = time_ns() // 1_000_000
-    print(f"calculated {len(vertex_pair_distances)} distances in {end_ms - start_ms}ms!")
     return vertex_pair_distances
 
 def debug_circuits(circuits):
