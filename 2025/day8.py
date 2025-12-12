@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from math import sqrt, prod
+from math import prod, sqrt
 from time import time_ns
 from sys import maxsize as MAX_INT
 
@@ -14,9 +14,11 @@ class Vertex():
 
 def read_input():
     input = []
-    with open('input/day8-test.txt', 'r') as input_file:
+    input_file = 'input/day8.txt'
+    limit = 10 if 'test' in input_file else 1000
+    with open(input_file, 'r') as input_file:
         input = [v.strip() for v in input_file.readlines()]
-    return input
+    return (limit, input)
 
 def parse_vertices(input):
     v = []
@@ -33,24 +35,14 @@ def euclidean_distance(v1: Vertex, v2: Vertex):
 
 def calculate_distances(vertices):
     vertex_pair_distances = []
-    seen_pairs = []
-    distances_calculated = 0
-    print("calculating distances...")
     start_ms = time_ns() // 1_000_000
     for v1 in vertices:
         for v2 in vertices:
             if v1 == v2:
                 continue
-            pair = {v1, v2}
-            if pair in seen_pairs:
-                continue
-            seen_pairs.append(pair)
             vertex_pair_distances.append([v1, v2, euclidean_distance(v1, v2)])
-            distances_calculated += 1
-            if distances_calculated % 10000 == 0:
-                print(f"calculated {distances_calculated} distances...")
     end_ms = time_ns() // 1_000_000
-    print(f"calculated {distances_calculated} distances in {end_ms - start_ms}ms!")
+    print(f"calculated {len(vertex_pair_distances)} distances in {end_ms - start_ms}ms!")
     return vertex_pair_distances
 
 def debug_circuits(circuits):
@@ -70,22 +62,30 @@ def debug_circuits(circuits):
     print(f"[debug_circuits] circuits:\n{circuits_str}")
 
 def part1(input, limit):
+    print(f"connecting {limit} junction boxes...")
+    
     vertices = parse_vertices(input)
     closest_pairs = sorted(calculate_distances(vertices), key=lambda pairing: pairing[2])
+    seen_pairs = []
     circuits = list(map(lambda v: {v}, vertices))
+    connected_count = 0
 
-    for pairing in closest_pairs[:limit]:
+    while connected_count < limit:
+        pairing = closest_pairs.pop(0)
         v1, v2 = pairing[0], pairing[1]
-        #print(f"connecting {v1} to {v2}...")
 
         new_circuit = set([v1, v2])
+        if new_circuit in seen_pairs:
+            continue
+
+        seen_pairs.append(new_circuit)
+        connected_count += 1
 
         # look for circuits that intersect the new circuit; everything else can be considered already merged
         intersecting_circuits = [new_circuit]
         merged_circuits = []
         for c in circuits:
             if not new_circuit.isdisjoint(c):
-                #print(f"\tintersection between new circuit {new_circuit} and existing circuit {c}!")
                 intersecting_circuits.append(c)
             else:
                 merged_circuits.append(c)
@@ -106,6 +106,6 @@ def part1(input, limit):
 def part2(input):
     print("Part 2:")
 
-input = read_input()
-part1(input, 10)
+limit, input = read_input()
+part1(input, limit)
 part2(input)
