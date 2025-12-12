@@ -90,7 +90,20 @@ def part1(input, limit):
     print(f"Part 1: {result}")
 
 def part2(input):
-    print("Part 2:")
+    vertices = parse_vertices(input)
+    circuits = list(map(lambda v: {v}, vertices))   # every junction box starts in a circuit by itself
+    closest_pairs = sorted(calculate_distances(vertices), key=lambda pairing: pairing[2])
+
+    last_pair = None
+    while len(circuits) > 1:
+        pairing = closest_pairs.pop(0)
+        last_pair = pairing
+        v1, v2 = pairing[0], pairing[1]
+        new_circuit = set([v1, v2])
+        circuits = merge_new_circuit(circuits, new_circuit)
+
+    result = prod([last_pair[0].x, last_pair[1].x])
+    print(f"Part 2: {result}")
 
 limit, input = read_input()
 part1(input, limit)
