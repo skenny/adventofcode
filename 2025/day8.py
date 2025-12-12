@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from itertools import combinations
 from math import prod, sqrt
 from time import time_ns
 from sys import maxsize as MAX_INT
@@ -36,11 +37,9 @@ def euclidean_distance(v1: Vertex, v2: Vertex):
 def calculate_distances(vertices):
     vertex_pair_distances = []
     start_ms = time_ns() // 1_000_000
-    for v1 in vertices:
-        for v2 in vertices:
-            if v1 == v2:
-                continue
-            vertex_pair_distances.append([v1, v2, euclidean_distance(v1, v2)])
+    for pair in list(combinations(vertices, 2)):
+        v1, v2 = pair[0], pair[1]
+        vertex_pair_distances.append([v1, v2, euclidean_distance(v1, v2)])
     end_ms = time_ns() // 1_000_000
     print(f"calculated {len(vertex_pair_distances)} distances in {end_ms - start_ms}ms!")
     return vertex_pair_distances
@@ -63,23 +62,15 @@ def debug_circuits(circuits):
 
 def part1(input, limit):
     print(f"connecting {limit} junction boxes...")
-    
     vertices = parse_vertices(input)
-    closest_pairs = sorted(calculate_distances(vertices), key=lambda pairing: pairing[2])
-    seen_pairs = []
+
+    # by default, every junction box is a circuit with itself
     circuits = list(map(lambda v: {v}, vertices))
-    connected_count = 0
 
-    while connected_count < limit:
-        pairing = closest_pairs.pop(0)
+    closest_pairs = sorted(calculate_distances(vertices), key=lambda pairing: pairing[2])
+    for pairing in closest_pairs[:limit]:
         v1, v2 = pairing[0], pairing[1]
-
         new_circuit = set([v1, v2])
-        if new_circuit in seen_pairs:
-            continue
-
-        seen_pairs.append(new_circuit)
-        connected_count += 1
 
         # look for circuits that intersect the new circuit; everything else can be considered already merged
         intersecting_circuits = [new_circuit]
