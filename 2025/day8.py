@@ -55,38 +55,38 @@ def debug_circuits(circuits):
     circuits_str = "\n".join(map(str, circuits))
     print(f"[debug_circuits] circuits:\n{circuits_str}")
 
+def merge_new_circuit(circuits, new_circuit):
+    # look for circuits that intersect the new circuit; everything else can be considered already merged
+    intersecting_circuits = [new_circuit]
+    merged_circuits = []
+    for circuit in circuits:
+        if circuit.isdisjoint(new_circuit):
+            merged_circuits.append(circuit)
+        else:
+            intersecting_circuits.append(circuit)
+
+    # merge the intersecting circuits
+    merged_circuit = set()
+    for circuit in intersecting_circuits:
+        for vertex in circuit:
+            merged_circuit.add(vertex)
+    merged_circuits.append(merged_circuit)
+
+    return merged_circuits
+
 def part1(input, limit):
     print(f"connecting {limit} junction boxes...")
+
     vertices = parse_vertices(input)
-
-    # by default, every junction box is a circuit with itself
-    circuits = list(map(lambda v: {v}, vertices))
-
+    circuits = list(map(lambda v: {v}, vertices))   # every junction box starts in a circuit by itself
     closest_pairs = sorted(calculate_distances(vertices), key=lambda pairing: pairing[2])
+
     for pairing in closest_pairs[:limit]:
         v1, v2 = pairing[0], pairing[1]
         new_circuit = set([v1, v2])
+        circuits = merge_new_circuit(circuits, new_circuit)
 
-        # look for circuits that intersect the new circuit; everything else can be considered already merged
-        intersecting_circuits = [new_circuit]
-        merged_circuits = []
-        for circuit in circuits:
-            if circuit.isdisjoint(new_circuit):
-                merged_circuits.append(circuit)
-            else:
-                intersecting_circuits.append(circuit)
-
-        # merge the intersecting circuits
-        merged_circuit = set()
-        for circuit in intersecting_circuits:
-            for vertex in circuit:
-                merged_circuit.add(vertex)
-        merged_circuits.append(merged_circuit)
-
-        circuits = merged_circuits
-
-    circuit_lengths = sorted(map(len, circuits))
-    result = prod(circuit_lengths[-3:])
+    result = prod(sorted(map(len, circuits))[-3:])
     print(f"Part 1: {result}")
 
 def part2(input):
