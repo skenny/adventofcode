@@ -70,17 +70,17 @@ def part1(input, limit):
         # look for circuits that intersect the new circuit; everything else can be considered already merged
         intersecting_circuits = [new_circuit]
         merged_circuits = []
-        for c in circuits:
-            if not new_circuit.isdisjoint(c):
-                intersecting_circuits.append(c)
+        for circuit in circuits:
+            if circuit.isdisjoint(new_circuit):
+                merged_circuits.append(circuit)
             else:
-                merged_circuits.append(c)
+                intersecting_circuits.append(circuit)
 
         # merge the intersecting circuits
         merged_circuit = set()
-        for c in intersecting_circuits:
-            for v in c:
-                merged_circuit.add(v)
+        for circuit in intersecting_circuits:
+            for vertex in circuit:
+                merged_circuit.add(vertex)
         merged_circuits.append(merged_circuit)
 
         circuits = merged_circuits
