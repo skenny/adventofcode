@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from itertools import combinations
 from math import prod, sqrt
-from sys import maxsize as MAX_INT
 
 @dataclass(frozen=True)
 class Vertex():
