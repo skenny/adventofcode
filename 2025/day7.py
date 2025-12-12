@@ -1,6 +1,13 @@
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Node():
+    depth: int
+    col: int
+
 def read_input():
     input = []
-    with open('input/day7.txt', 'r') as input_file:
+    with open('input/day7-test.txt', 'r') as input_file:
         input = [v for v in input_file.readlines()]
     return input
 
@@ -31,9 +38,13 @@ def part1(input):
         beam_cols = new_beam_cols
     print(f"Part 1: {num_splits}")
 
-def part2():
-    print("Part 2:")
+def part2(input):
+    universes = []
+
+    # try a recursive function that builds/returns a path str, always taking the left first, then the right
+
+    print(f"Part 2: {len(universes)}")   # 3291 is too low
 
 input = read_input()
 part1(input)
-part2()
+part2(input)
